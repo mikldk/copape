@@ -6,6 +6,8 @@
 
 #include "util.h"
 
+//' Merge all random
+//' 
 // [[Rcpp::export]]
 Rcpp::DataFrame merge_all_random(
     const Rcpp::IntegerVector& pids,
@@ -19,13 +21,8 @@ Rcpp::DataFrame merge_all_random(
   
   ////////////////////////////////////////////////////////////////
   // Validate input
-  if (pids_dad.length() != n || 
-      birthyears.length() != n || 
-      paternalped_ids.length() != n) {
+  validate_merge_input(pids, pids_dad, birthyears, paternalped_ids);
     
-    Rcpp::stop("Need same lengths of vectors");
-  }
-  
   for (int pid : pids) {
     if (pid >= surr_pid_start) {
       Rcpp::Rcout << "Found individual with pid = " << pid << std::endl;

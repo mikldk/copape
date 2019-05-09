@@ -21,6 +21,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// merge_single_random
+Rcpp::DataFrame merge_single_random(const Rcpp::IntegerVector& pids, const Rcpp::IntegerVector& pids_dad, const Rcpp::IntegerVector& birthyears, const Rcpp::IntegerVector& paternalped_ids, const int pid_to_merge, const int max_meioses, int surr_pid_start);
+RcppExport SEXP _copape_merge_single_random(SEXP pidsSEXP, SEXP pids_dadSEXP, SEXP birthyearsSEXP, SEXP paternalped_idsSEXP, SEXP pid_to_mergeSEXP, SEXP max_meiosesSEXP, SEXP surr_pid_startSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type pids(pidsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type pids_dad(pids_dadSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type birthyears(birthyearsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type paternalped_ids(paternalped_idsSEXP);
+    Rcpp::traits::input_parameter< const int >::type pid_to_merge(pid_to_mergeSEXP);
+    Rcpp::traits::input_parameter< const int >::type max_meioses(max_meiosesSEXP);
+    Rcpp::traits::input_parameter< int >::type surr_pid_start(surr_pid_startSEXP);
+    rcpp_result_gen = Rcpp::wrap(merge_single_random(pids, pids_dad, birthyears, paternalped_ids, pid_to_merge, max_meioses, surr_pid_start));
+    return rcpp_result_gen;
+END_RCPP
+}
 // random_index
 int random_index(int n);
 RcppExport SEXP _copape_random_index(SEXP nSEXP) {
@@ -35,6 +52,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_copape_merge_all_random", (DL_FUNC) &_copape_merge_all_random, 6},
+    {"_copape_merge_single_random", (DL_FUNC) &_copape_merge_single_random, 7},
     {"_copape_random_index", (DL_FUNC) &_copape_random_index, 1},
     {NULL, NULL, 0}
 };

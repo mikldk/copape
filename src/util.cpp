@@ -26,3 +26,45 @@ int random_index(int n) {
   return idx;
 }
 
+
+// Validate input
+void validate_merge_input(
+    const Rcpp::IntegerVector& pids,
+    const Rcpp::IntegerVector& pids_dad, 
+    const Rcpp::IntegerVector& birthyears, 
+    const Rcpp::IntegerVector& paternalped_ids) {
+
+  int n = pids.length();
+
+  // Validate input
+  if (pids_dad.length() != n || 
+      birthyears.length() != n || 
+      paternalped_ids.length() != n) {
+    
+    Rcpp::stop("Need same lengths of vectors");
+  }
+  
+  for (int pid : pids) {
+    if (Rcpp::IntegerVector::is_na(pid)) {
+      Rcpp::Rcout << "Found individual with pid = " << pid << std::endl;
+      Rcpp::stop("pids must cannot be NA");
+    } 
+    
+    if (pid <= 0) {
+      Rcpp::Rcout << "Found individual with pid = " << pid << std::endl;
+      Rcpp::stop("pids must be >= 1");
+    }
+  }
+  
+  for (int pid_dad : pids_dad) {
+    if (Rcpp::IntegerVector::is_na(pid_dad)) {
+      continue;
+    }
+    
+    if (pid_dad <= 0) {
+      Rcpp::Rcout << "Found individual with pid_dad = " << pid_dad << std::endl;
+      Rcpp::stop("pid_dad must be NA or >= 1");
+    }
+  }
+}
+
