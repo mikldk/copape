@@ -1,0 +1,2 @@
+#' @useDynLib malan
+NULL

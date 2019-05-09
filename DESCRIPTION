@@ -1,0 +1,30 @@
+Package: copape
+Type: Package
+Title: Coalesce Paternal Pedigrees
+Version: 0.0.0.9000
+Authors@R: c(
+    person(given = "Mikkel Meyer", family = "Andersen", 
+        email = "mikl@math.aau.dk", role = c("aut", "cre"))
+  )
+Maintainer: Mikkel Meyer Andersen <mikl@math.aau.dk>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+Encoding: UTF-8
+LazyData: true
+License: GPL (>= 2)
+Depends:
+    R (>= 3.3.1)
+Imports:
+    Rcpp (>= 0.12.12),
+    dplyr,
+    magrittr,
+    tibble
+LinkingTo: Rcpp
+SystemRequirements: C++11
+RoxygenNote: 6.1.1
+Suggests: 
+    testthat,
+    testthis,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
