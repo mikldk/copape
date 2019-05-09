@@ -1,2 +1,2 @@
-#' @useDynLib malan
+#' @useDynLib copape
 NULL

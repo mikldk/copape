@@ -1,9 +1,5 @@
-#' MAle Lineage ANalysis
+#' COalesce PAternal PEdigrees
 #'
-#' Simulating genealogies backwards and imposing STR mutations forwards.
-#' 
-#' See vignettes and manual for documentation.
-#' 
 #' Disclaimer:
 #' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
 #' EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
@@ -13,7 +9,4 @@
 #' TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 #' CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #'
-#' @references
-#'  Andersen MM, Balding DJ (2017) How convincing is a matching Y-chromosome profile? 
-#'  PLoS Genet 13(11): e1007028. \url{https://doi.org/10.1371/journal.pgen.1007028}.
 "_PACKAGE"

@@ -1,3 +1,3 @@
 .onUnload <- function(libpath) {
-  library.dynam.unload("malan", libpath)
+  library.dynam.unload("copape", libpath)
 }
