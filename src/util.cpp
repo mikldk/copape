@@ -68,3 +68,32 @@ void validate_merge_input(
   }
 }
 
+
+int required_surrogate_fathers(const std::vector<int>& paternalped_ids) {
+  std::unordered_map<int, int> pedids_counts;
+  std::unordered_map<int, int>::const_iterator got;
+  
+  for (int pedid : paternalped_ids) {
+    got = pedids_counts.find(pedid);
+    
+    if (got == pedids_counts.end()) {
+      pedids_counts[pedid] = 1;
+    }
+  }
+  int M = pedids_counts.size();
+
+  /* TODO: Check up:
+   * When there are 2 unique pedigrees, we must introduce 1 new surrogate father.
+   * When there are 3 unique pedigrees, we must introduce 2 new surrogate fathers.
+   * When there are 4 unique pedigrees, we must introduce 1+1+1=3 new surrogate fathers.
+   * When there are M unique pedigrees, we must introduce M-1 new surrogate fathers.
+   * Proof by induction:
+   * Assume that there are M-1 unique pedigrees and by induction that 
+   * it requires M-2 new surrogate fathers to get to having one common founder.
+   * Now add a new pedigree. To get a new common founder, add a new father,
+   * thus obtaining a total of M-1 introduced surrogate fathers.
+   */
+  return M-1;
+}
+
+

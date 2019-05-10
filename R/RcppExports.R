@@ -3,14 +3,8 @@
 
 #' Merge all random
 #' 
-merge_all_random <- function(pids, pids_dad, birthyears, paternalped_ids, surr_pid_start = 50000000L, max_it = -1L) {
-    .Call('_copape_merge_all_random', PACKAGE = 'copape', pids, pids_dad, birthyears, paternalped_ids, surr_pid_start, max_it)
-}
-
-#' Merge single random
-#' 
-merge_single_random <- function(pids, pids_dad, birthyears, paternalped_ids, pid_to_merge, max_meioses = 100L, surr_pid_start = 50000000L) {
-    .Call('_copape_merge_single_random', PACKAGE = 'copape', pids, pids_dad, birthyears, paternalped_ids, pid_to_merge, max_meioses, surr_pid_start)
+merge_all_random <- function(pids, pids_dad, birthyears, paternalped_ids, max_it = -1L, surr_pid_start = 50000000L, verbose = FALSE) {
+    .Call('_copape_merge_all_random', PACKAGE = 'copape', pids, pids_dad, birthyears, paternalped_ids, max_it, surr_pid_start, verbose)
 }
 
 #' Random index between 0 and n-1 (both included)

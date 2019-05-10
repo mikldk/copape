@@ -20,4 +20,7 @@ void validate_merge_input(
     const Rcpp::IntegerVector& birthyears, 
     const Rcpp::IntegerVector& paternalped_ids);
 
+int required_surrogate_fathers(const std::vector<int>& paternalped_ids);
+
+
 #endif

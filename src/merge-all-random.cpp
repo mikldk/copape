@@ -6,6 +6,77 @@
 
 #include "util.h"
 
+
+// TODO: 
+// stop when a certain pid is merged to min_meioses:
+// when there are min_meioses between pid and the pedigree's founder, the remaining
+// merges will only result in a meiotic distance > min_meioses, i.e. maybe of no interest:
+
+// Anything to speed-up:
+// Always merge pid's pedigree, ped:
+// First time: merge ped to another one, and take two others and merge. Now these two are merged.
+// Second time: take two pedigrees and merge, and two more and merge. And merge these. Now that is merged to the other with ped.
+/*
+merge pid extra_meioses times (e.g. extra_meioses = min_meioses - current_ped_depth)?
+
+x: surrogate individuals
+o: existing founders
+P: ped with PoI
+
+------------------------------------------------------------
+min_meioses = 1: 
+2^1 - 1 = 2 - 1 = 1 other ped (number of "o"'s)
+  x
+ / \
+P   o
+randomly pick 1 other ped, discard the rest?
+------------------------------------------------------------
+
+
+------------------------------------------------------------
+min_meioses = 2: 3 others
+2^2 - 1 = 4 - 1 = 3 other peds (number of "o"'s)
+     x
+    / \
+  x     x
+ / \   / \
+P   o o   o
+randomly pick 3 other peds, discard the rest?
+------------------------------------------------------------
+
+
+------------------------------------------------------------
+min_meioses = 3: 7 others
+2^3 - 1 = 8 - 1 = 7 other peds (number of "o"'s)
+           x
+      ____/ \____
+     x           x
+    / \         / \
+  x     x     x     x
+ / \   / \   / \   / \
+P   o o   o o   o o   o
+randomly pick 7 other peds, discard the rest?
+------------------------------------------------------------
+
+------------------------------------------------------------
+min_meioses = 4: 15 others
+2^4 - 1 = 16 - 1 = 15 other peds (number of "o"'s)
+                       x
+            __________/ \__________
+           x                       x
+      ____/ \____             ____/ \____
+     x           x           x           x
+    / \         / \         / \         / \
+  x     x     x     x     x     x     x     x
+ / \   / \   / \   / \   / \   / \   / \   / \
+P   o o   o o   o o   o o   o o   o o   o o   o
+randomly pick 15 other peds, discard the rest?
+------------------------------------------------------------
+
+In general for extra_meioses for a certain pid:
+pick 2^extra_meioses - 1 peds, and use those.
+*/
+
 //' Merge all random
 //' 
 // [[Rcpp::export]]
@@ -14,8 +85,9 @@ Rcpp::DataFrame merge_all_random(
     const Rcpp::IntegerVector& pids_dad, 
     const Rcpp::IntegerVector& birthyears, 
     const Rcpp::IntegerVector& paternalped_ids,
-    int surr_pid_start = 50000000, 
-    int max_it = -1) {
+    int max_it = -1,
+    int surr_pid_start = 50000000,
+    bool verbose = false) {
   
   int n = pids.length();
   
@@ -38,7 +110,19 @@ Rcpp::DataFrame merge_all_random(
   std::vector<int> res_birthyears = Rcpp::as< std::vector<int> >(birthyears);
   std::vector<int> res_paternalped_ids = Rcpp::as< std::vector<int> >(paternalped_ids);
   
-
+  // Reserve memory for added founders
+  int no_new_surr_fathers = required_surrogate_fathers(res_paternalped_ids);
+  
+  if (verbose) {
+    Rcpp::Rcout << "Will introduce " << no_new_surr_fathers << " new surrogate fathers (but only if max_it allows)" << std::endl;
+  }
+  
+  int total_size = n + no_new_surr_fathers;
+  
+  res_pids.reserve(total_size);
+  res_pids_dads.reserve(total_size);
+  res_birthyears.reserve(total_size);
+  res_paternalped_ids.reserve(total_size);
     
   ////////////////////////////////////////////////////////////////
   // Find candidates, i.e. those currently without founder
@@ -58,7 +142,8 @@ Rcpp::DataFrame merge_all_random(
 
   ////////////////////////////////////////////////////////////////
   // Maps for look-up
-  //std::unordered_map<int, int> pid_to_index;
+  // TODO
+  //std::unordered_map<int, int> pedid_to_index;
   
   ////////////////////////////////////////////////////////////////
   // Main loop
@@ -70,8 +155,10 @@ Rcpp::DataFrame merge_all_random(
       break;
     }
     
-    if (i % 1000 == 0) {
-      Rcpp::Rcout << "Candidates left: " << n_candidates << std::endl;
+    if (i % 1000 == 999) { // instead of 0 to avoid status for small problems
+      if (verbose) {
+        Rcpp::Rcout << "Candidates left: " << n_candidates << std::endl;
+      }
       Rcpp::checkUserInterrupt();
     }
     
@@ -85,13 +172,22 @@ Rcpp::DataFrame merge_all_random(
     int idx1 = indices_candidates[pos1];
     int idx2 = indices_candidates[pos2];
     
+    /*
+    if (verbose) {
+      Rcpp::Rcout << "row1 = " << (idx1+1) << ", row2 = " << (idx2+1) << std::endl;
+    }
+    */
     //Rcpp::Rcout << "idx1 = " << idx1 << ", idx2 = " << idx2 << std::endl;
+    
     
     /////////////////////////////////////////////////////////////
     
     int surr_founder_pid = surr_pid_start;
     res_pids.push_back(surr_founder_pid);
     
+    if (res_pids_dads[idx1] != 0 || res_pids_dads[idx2] != 0) {
+      Rcpp::stop("Candidates were not candidates anyway!");
+    }
     res_pids_dads[idx1] = surr_founder_pid;
     res_pids_dads[idx2] = surr_founder_pid;
     res_pids_dads.push_back(0); // for the new surrogate founder
@@ -100,23 +196,67 @@ Rcpp::DataFrame merge_all_random(
     
     // Use i1's pedid:
     int pedid = res_paternalped_ids[idx1];
-    res_paternalped_ids[idx2] = pedid;
+    // Update all with that pedigree id, one of which is when i = idx2, such that
+    // res_paternalped_ids[idx2] = pedid;
+    int pedid_idx2 = res_paternalped_ids[idx2];
+    // TODO: Use pedid_to_index hash
+    for (int j = 0; j < res_paternalped_ids.size(); ++j) {
+      if (res_paternalped_ids[j] == pedid_idx2) {
+        res_paternalped_ids[j] = pedid;
+      }
+    }
     res_paternalped_ids.push_back(pedid);  // for the new surrogate founder
     
     
     // include new surrogate as candidate next:
     indices_candidates.push_back(res_pids.size() - 1);
     
-    indices_candidates.erase(indices_candidates.begin() + pos1);
-    indices_candidates.erase(indices_candidates.begin() + pos2);
+    // Be sure to delete highest index first to keep ordering!
+    if (pos2 > pos1) {
+      indices_candidates.erase(indices_candidates.begin() + pos2);
+      indices_candidates.erase(indices_candidates.begin() + pos1);
+    } else {
+      indices_candidates.erase(indices_candidates.begin() + pos1);
+      indices_candidates.erase(indices_candidates.begin() + pos2);
+    }
     
-      
+    
+    ////////////////////////////////////////////////////////////////
+    /*
+    Rcpp::Rcout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
+    
+    Rcpp::Rcout << "res_pids:" << std::endl;
+    Rcpp::print(Rcpp::wrap(res_pids));
+    
+    Rcpp::Rcout << "res_pids_dads:" << std::endl;
+    Rcpp::print(Rcpp::wrap(res_pids_dads));
+    
+    Rcpp::Rcout << "res_birthyears:" << std::endl;
+    Rcpp::print(Rcpp::wrap(res_birthyears));
+    
+    Rcpp::Rcout << "res_paternalped_ids:" << std::endl;
+    Rcpp::print(Rcpp::wrap(res_paternalped_ids));
+    
+    Rcpp::Rcout << "indices_candidates:" << std::endl;
+    Rcpp::print(Rcpp::wrap(indices_candidates));
+    Rcpp::Rcout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+    */
+    ////////////////////////////////////////////////////////////////
+    
     // Get ready for next  
     surr_pid_start++;
+    if (surr_pid_start < 0) {
+      Rcpp::stop("Overflow in surr_pid_start");
+    }
     
     ++i;
-  } while (indices_candidates.size() >= 2 && (max_it == -1 || (max_it > 0 && i < max_it)));
+  //} while (indices_candidates.size() >= 2 && (max_it == -1 || (max_it > 0 && i < max_it)));
+  } while (max_it == -1 || (max_it > 0 && i < max_it));
   
+  if (verbose) {
+    Rcpp::Rcout << "Candidates left: " << indices_candidates.size() << std::endl;
+  }
+    
   ////////////////////////////////////////////////////////////////
   // Return
 
