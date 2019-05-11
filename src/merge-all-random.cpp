@@ -79,6 +79,11 @@ pick 2^extra_meioses - 1 peds, and use those.
 
 //' Merge all random
 //' 
+//' @inheritParams validate_merge_input
+//' @param max_it maximum number of iterations (merge events), `-1` for disable
+//' @param surr_pid_start start person id for new surrogate individuals
+//' @param verbose verbose output
+//' 
 // [[Rcpp::export]]
 Rcpp::DataFrame merge_all_random(
     const Rcpp::IntegerVector& pids,

@@ -27,7 +27,14 @@ int random_index(int n) {
 }
 
 
-// Validate input
+//' Validate input
+//' 
+//' @param pids person id: >= 1 (`NA` not allowed)
+//' @param pids_dad person id for dad: >= 1 (`NA` for founders)
+//' @param birthyears birth year: free
+//' @param paternalped_ids pedigree id: >= 1 (`NA` not allowed)
+//' 
+// [[Rcpp::export]]
 void validate_merge_input(
     const Rcpp::IntegerVector& pids,
     const Rcpp::IntegerVector& pids_dad, 
@@ -46,8 +53,7 @@ void validate_merge_input(
   
   for (int pid : pids) {
     if (Rcpp::IntegerVector::is_na(pid)) {
-      Rcpp::Rcout << "Found individual with pid = " << pid << std::endl;
-      Rcpp::stop("pids must cannot be NA");
+      Rcpp::stop("pid cannot be NA");
     } 
     
     if (pid <= 0) {
@@ -64,6 +70,17 @@ void validate_merge_input(
     if (pid_dad <= 0) {
       Rcpp::Rcout << "Found individual with pid_dad = " << pid_dad << std::endl;
       Rcpp::stop("pid_dad must be NA or >= 1");
+    }
+  }
+  
+  for (int ped_id : paternalped_ids) {
+    if (Rcpp::IntegerVector::is_na(ped_id)) {
+      Rcpp::stop("ped_id cannot be NA");
+    }
+
+    if (ped_id <= 0) {
+      Rcpp::Rcout << "Found individual with ped_id = " << ped_id << std::endl;
+      Rcpp::stop("ped_id must be >= 1");
     }
   }
 }

@@ -105,5 +105,6 @@ d_males <-
   )
 
 test_that("Input validation", {
+  
   expect_error(stop("error"))
 })

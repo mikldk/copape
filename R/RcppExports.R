@@ -3,6 +3,11 @@
 
 #' Merge all random
 #' 
+#' @inheritParams validate_merge_input
+#' @param max_it maximum number of iterations (merge events), `-1` for disable
+#' @param surr_pid_start start person id for new surrogate individuals
+#' @param verbose verbose output
+#' 
 merge_all_random <- function(pids, pids_dad, birthyears, paternalped_ids, max_it = -1L, surr_pid_start = 50000000L, verbose = FALSE) {
     .Call('_copape_merge_all_random', PACKAGE = 'copape', pids, pids_dad, birthyears, paternalped_ids, max_it, surr_pid_start, verbose)
 }
@@ -12,5 +17,16 @@ merge_all_random <- function(pids, pids_dad, birthyears, paternalped_ids, max_it
 #' @param n upper limit (not included)
 random_index <- function(n) {
     .Call('_copape_random_index', PACKAGE = 'copape', n)
+}
+
+#' Validate input
+#' 
+#' @param pids person id: >= 1 (`NA` not allowed)
+#' @param pids_dad person id for dad: >= 1 (`NA` for founders)
+#' @param birthyears birth year: free
+#' @param paternalped_ids pedigree id: >= 1 (`NA` not allowed)
+#' 
+validate_merge_input <- function(pids, pids_dad, birthyears, paternalped_ids) {
+    invisible(.Call('_copape_validate_merge_input', PACKAGE = 'copape', pids, pids_dad, birthyears, paternalped_ids))
 }
 

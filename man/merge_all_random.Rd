@@ -5,7 +5,22 @@
 \title{Merge all random}
 \usage{
 merge_all_random(pids, pids_dad, birthyears, paternalped_ids,
-  surr_pid_start = 50000000L, max_it = -1L)
+  max_it = -1L, surr_pid_start = 50000000L, verbose = FALSE)
+}
+\arguments{
+\item{pids}{person id: >= 1 (`NA` not allowed)}
+
+\item{pids_dad}{person id for dad: >= 1 (`NA` for founders)}
+
+\item{birthyears}{birth year: free}
+
+\item{paternalped_ids}{pedigree id: >= 1 (`NA` not allowed)}
+
+\item{max_it}{maximum number of iterations (merge events), `-1` for disable}
+
+\item{surr_pid_start}{start person id for new surrogate individuals}
+
+\item{verbose}{verbose output}
 }
 \description{
 Merge all random

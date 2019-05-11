@@ -33,10 +33,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// validate_merge_input
+void validate_merge_input(const Rcpp::IntegerVector& pids, const Rcpp::IntegerVector& pids_dad, const Rcpp::IntegerVector& birthyears, const Rcpp::IntegerVector& paternalped_ids);
+RcppExport SEXP _copape_validate_merge_input(SEXP pidsSEXP, SEXP pids_dadSEXP, SEXP birthyearsSEXP, SEXP paternalped_idsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type pids(pidsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type pids_dad(pids_dadSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type birthyears(birthyearsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type paternalped_ids(paternalped_idsSEXP);
+    validate_merge_input(pids, pids_dad, birthyears, paternalped_ids);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_copape_merge_all_random", (DL_FUNC) &_copape_merge_all_random, 7},
     {"_copape_random_index", (DL_FUNC) &_copape_random_index, 1},
+    {"_copape_validate_merge_input", (DL_FUNC) &_copape_validate_merge_input, 4},
     {NULL, NULL, 0}
 };
 
