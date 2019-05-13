@@ -12,10 +12,12 @@ test_that("random_index()", {
 })
 
 test_that("validate_merge_input()", {
-  expect_success(validate_merge_input(pids = 1, 
-                                      pids_dad = NA, 
-                                      birthyears = 0, 
-                                      paternalped_ids = NA))
+  expect_error(
+    validate_merge_input(pids = 1, 
+                         pids_dad = NA, 
+                         birthyears = 0, 
+                         paternalped_ids = 1),
+    NA) # No error
   
   # pid cannot be NA, and must be >= 1
   

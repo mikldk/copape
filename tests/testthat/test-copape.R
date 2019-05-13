@@ -104,7 +104,52 @@ d_males <-
     row.names = c(NA,-22L)
   )
 
+if (FALSE) {
+  dplyr::count(d_males, paternalped_id)
+}
+
 test_that("Input validation", {
+  expect_error(
+    merge_certain_pedigree_randomly(
+      pids = dplyr::pull(d_males, pid),
+      pids_dad = dplyr::pull(d_males, pid_dad),
+      birthyears = dplyr::pull(d_males, birthyear),
+      paternalped_ids = dplyr::pull(d_males, paternalped_id),
+      pedid_to_merge = -1),
+    regexp = "^pedid_to_merge must be >= 1$"
+  )
   
-  expect_error(stop("error"))
+  expect_error(
+    merge_certain_pedigree_randomly(
+      pids = dplyr::pull(d_males, pid),
+      pids_dad = dplyr::pull(d_males, pid_dad),
+      birthyears = dplyr::pull(d_males, birthyear),
+      paternalped_ids = dplyr::pull(d_males, paternalped_id),
+      pedid_to_merge = 10),
+    regexp = "^key not found$"
+  )
+  
+  expect_error(
+    merge_certain_pedigree_randomly(
+      pids = dplyr::pull(d_males, pid),
+      pids_dad = dplyr::pull(d_males, pid_dad),
+      birthyears = dplyr::pull(d_males, birthyear),
+      paternalped_ids = dplyr::pull(d_males, paternalped_id),
+      pedid_to_merge = 1,
+      no_surrogate_ancestors = 10),
+    regexp = "^Not enough pedigrees to perform that number of ancestors$"
+  )
+})
+
+
+test_that("Small test of merge_certain_pedigree_randomly", {
+  
+  res <- merge_certain_pedigree_randomly(
+    pids = dplyr::pull(d_males, pid),
+    pids_dad = dplyr::pull(d_males, pid_dad),
+    birthyears = dplyr::pull(d_males, birthyear),
+    paternalped_ids = dplyr::pull(d_males, paternalped_id),
+    pedid_to_merge = 1,
+    no_surrogate_ancestors = 1)
+  
 })

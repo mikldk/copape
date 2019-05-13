@@ -5,87 +5,19 @@
 #include <unordered_map>
 
 #include "util.h"
-
-
-// TODO: 
-// stop when a certain pid is merged to min_meioses:
-// when there are min_meioses between pid and the pedigree's founder, the remaining
-// merges will only result in a meiotic distance > min_meioses, i.e. maybe of no interest:
-
-// Anything to speed-up:
-// Always merge pid's pedigree, ped:
-// First time: merge ped to another one, and take two others and merge. Now these two are merged.
-// Second time: take two pedigrees and merge, and two more and merge. And merge these. Now that is merged to the other with ped.
-/*
-merge pid extra_meioses times (e.g. extra_meioses = min_meioses - current_ped_depth)?
-
-x: surrogate individuals
-o: existing founders
-P: ped with PoI
-
-------------------------------------------------------------
-min_meioses = 1: 
-2^1 - 1 = 2 - 1 = 1 other ped (number of "o"'s)
-  x
- / \
-P   o
-randomly pick 1 other ped, discard the rest?
-------------------------------------------------------------
-
-
-------------------------------------------------------------
-min_meioses = 2: 3 others
-2^2 - 1 = 4 - 1 = 3 other peds (number of "o"'s)
-     x
-    / \
-  x     x
- / \   / \
-P   o o   o
-randomly pick 3 other peds, discard the rest?
-------------------------------------------------------------
-
-
-------------------------------------------------------------
-min_meioses = 3: 7 others
-2^3 - 1 = 8 - 1 = 7 other peds (number of "o"'s)
-           x
-      ____/ \____
-     x           x
-    / \         / \
-  x     x     x     x
- / \   / \   / \   / \
-P   o o   o o   o o   o
-randomly pick 7 other peds, discard the rest?
-------------------------------------------------------------
-
-------------------------------------------------------------
-min_meioses = 4: 15 others
-2^4 - 1 = 16 - 1 = 15 other peds (number of "o"'s)
-                       x
-            __________/ \__________
-           x                       x
-      ____/ \____             ____/ \____
-     x           x           x           x
-    / \         / \         / \         / \
-  x     x     x     x     x     x     x     x
- / \   / \   / \   / \   / \   / \   / \   / \
-P   o o   o o   o o   o o   o o   o o   o o   o
-randomly pick 15 other peds, discard the rest?
-------------------------------------------------------------
-
-In general for extra_meioses for a certain pid:
-pick 2^extra_meioses - 1 peds, and use those.
-*/
+#include "util-validate.h"
 
 //' Merge all random
 //' 
 //' @inheritParams validate_merge_input
+//' @inheritParams validate_surr_pid_start
 //' @param max_it maximum number of iterations (merge events), `-1` for disable
-//' @param surr_pid_start start person id for new surrogate individuals
 //' @param verbose verbose output
 //' 
+//' @return All individuals, including new surrogate.
+//' 
 // [[Rcpp::export]]
-Rcpp::DataFrame merge_all_random(
+Rcpp::DataFrame proto_merge_all_random(
     const Rcpp::IntegerVector& pids,
     const Rcpp::IntegerVector& pids_dad, 
     const Rcpp::IntegerVector& birthyears, 
@@ -99,13 +31,7 @@ Rcpp::DataFrame merge_all_random(
   ////////////////////////////////////////////////////////////////
   // Validate input
   validate_merge_input(pids, pids_dad, birthyears, paternalped_ids);
-    
-  for (int pid : pids) {
-    if (pid >= surr_pid_start) {
-      Rcpp::Rcout << "Found individual with pid = " << pid << std::endl;
-      Rcpp::stop("surr_pid_start too small");
-    }
-  }
+  validate_surr_pid_start(pids, surr_pid_start);
   ////////////////////////////////////////////////////////////////
   
   ////////////////////////////////////////////////////////////////

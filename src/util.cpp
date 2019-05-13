@@ -27,65 +27,7 @@ int random_index(int n) {
 }
 
 
-//' Validate input
-//' 
-//' @param pids person id: >= 1 (`NA` not allowed)
-//' @param pids_dad person id for dad: >= 1 (`NA` for founders)
-//' @param birthyears birth year: free
-//' @param paternalped_ids pedigree id: >= 1 (`NA` not allowed)
-//' 
-// [[Rcpp::export]]
-void validate_merge_input(
-    const Rcpp::IntegerVector& pids,
-    const Rcpp::IntegerVector& pids_dad, 
-    const Rcpp::IntegerVector& birthyears, 
-    const Rcpp::IntegerVector& paternalped_ids) {
-
-  int n = pids.length();
-
-  // Validate input
-  if (pids_dad.length() != n || 
-      birthyears.length() != n || 
-      paternalped_ids.length() != n) {
-    
-    Rcpp::stop("Need same lengths of vectors");
-  }
-  
-  for (int pid : pids) {
-    if (Rcpp::IntegerVector::is_na(pid)) {
-      Rcpp::stop("pid cannot be NA");
-    } 
-    
-    if (pid <= 0) {
-      Rcpp::Rcout << "Found individual with pid = " << pid << std::endl;
-      Rcpp::stop("pids must be >= 1");
-    }
-  }
-  
-  for (int pid_dad : pids_dad) {
-    if (Rcpp::IntegerVector::is_na(pid_dad)) {
-      continue;
-    }
-    
-    if (pid_dad <= 0) {
-      Rcpp::Rcout << "Found individual with pid_dad = " << pid_dad << std::endl;
-      Rcpp::stop("pid_dad must be NA or >= 1");
-    }
-  }
-  
-  for (int ped_id : paternalped_ids) {
-    if (Rcpp::IntegerVector::is_na(ped_id)) {
-      Rcpp::stop("ped_id cannot be NA");
-    }
-
-    if (ped_id <= 0) {
-      Rcpp::Rcout << "Found individual with ped_id = " << ped_id << std::endl;
-      Rcpp::stop("ped_id must be >= 1");
-    }
-  }
-}
-
-
+// ??????
 int required_surrogate_fathers(const std::vector<int>& paternalped_ids) {
   std::unordered_map<int, int> pedids_counts;
   std::unordered_map<int, int>::const_iterator got;
@@ -114,3 +56,62 @@ int required_surrogate_fathers(const std::vector<int>& paternalped_ids) {
 }
 
 
+void print_map_int_vecint(const std::unordered_map<int, std::vector<int>>& x) {
+  for (auto v : x) {
+    Rcpp::Rcout << v.first << ":\n" << std::endl;
+    
+    for (auto y : v.second) {
+      Rcpp::Rcout << " " << y;
+    }
+    
+    Rcpp::Rcout << std::endl;
+  }
+}
+
+
+std::unordered_map<int, std::vector<int>> vector_to_hash(const Rcpp::IntegerVector& x) {
+  std::unordered_map<int, std::vector<int>> map;
+  int n = x.length();
+  for (int i = 0; i < n; ++i) {
+    map[ x[i] ].push_back(i);
+  }
+  
+  return map;
+}
+
+// Returns a shuffled vector
+std::vector<int> sample_pedids_to_merge(const std::unordered_map<int, std::vector<int>>& map,
+                                        const int size,
+                                        const int pedid_skip) {
+  
+  // Find existing pedids:
+  std::vector<int> pedids_candidates;
+  pedids_candidates.reserve(map.size() - 1);
+  for(auto x : map) {
+    if (x.first == pedid_skip) {
+      continue;
+    }
+    
+    pedids_candidates.push_back(x.first);
+  } 
+  
+  
+  if (pedids_candidates.size() < size) {
+    Rcpp::stop("Not enough pedigrees to perform that number of ancestors");
+  }
+  
+  int n_cand = pedids_candidates.size();
+  Rcpp::IntegerVector selected_pedids_indices = Rcpp::sample(
+    n_cand, // n
+    size, // size
+    false, // replace
+    R_NilValue, // probs
+    false); // one-based
+  
+  std::vector<int> selected_pedids(size);
+  for (int i = 0; i < size; ++i) {
+    selected_pedids[i] = pedids_candidates[ selected_pedids_indices[i] ];
+  }
+  
+  return selected_pedids;
+}
