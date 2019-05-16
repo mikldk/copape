@@ -21,6 +21,8 @@ void validate_merge_input(
 
   int n = pids.length();
 
+  // TODO: Check pids unique!
+  
   // Validate input
   if (pids_dad.length() != n || 
       birthyears.length() != n || 
@@ -35,7 +37,7 @@ void validate_merge_input(
     } 
     
     if (pid <= 0) {
-      Rcpp::Rcout << "Found individual with pid = " << pid << std::endl;
+      //Rcpp::Rcout << "Found individual with pid = " << pid << std::endl;
       Rcpp::stop("pids must be >= 1");
     }
   }
@@ -46,7 +48,7 @@ void validate_merge_input(
     }
     
     if (pid_dad <= 0) {
-      Rcpp::Rcout << "Found individual with pid_dad = " << pid_dad << std::endl;
+      //Rcpp::Rcout << "Found individual with pid_dad = " << pid_dad << std::endl;
       Rcpp::stop("pid_dad must be NA or >= 1");
     }
   }
@@ -57,7 +59,7 @@ void validate_merge_input(
     }
 
     if (ped_id <= 0) {
-      Rcpp::Rcout << "Found individual with ped_id = " << ped_id << std::endl;
+      //Rcpp::Rcout << "Found individual with ped_id = " << ped_id << std::endl;
       Rcpp::stop("ped_id must be >= 1");
     }
   }
@@ -82,6 +84,31 @@ void validate_surr_pid_start(
   }
 }
 
+
+//' Validate configuration of sons (age of father when each son is born)
+//' 
+//' @param sons_configs list of sons (age of father when each son was born); 
+//' elements cannot be of size 0 and all ages be > 0. E.g. `list(c(28, 30), c(24))`.
+//' 
+// [[Rcpp::export]]
+void validate_sons_configs(const Rcpp::ListOf<Rcpp::IntegerVector>& sons_configs) {
+
+  if (sons_configs.size() == 0) {
+    Rcpp::stop("sons_configs cannot be empty");
+  }
+
+  for (Rcpp::IntegerVector sons : sons_configs) {
+    if (sons.size() == 0) {
+      Rcpp::stop("Element cannot be of size 0");
+    }
+    
+    for (int age : sons) {
+      if (age <= 0) {
+        Rcpp::stop("age <= 0");
+      }
+    }
+  }
+}
 
 void validate_key_exists(
     const std::unordered_map<int, std::vector<int>>& map,

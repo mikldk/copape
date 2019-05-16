@@ -9,6 +9,12 @@
 #include "util.h"
 #include "util-validate.h"
 
+/*
+ * Binary trees: always two sons?!
+ * 
+ * Distribution of sons?
+ * Likelihood birthyear
+ */
 
 // Assumes that input has been validated
 Rcpp::DataFrame build_merge_result(

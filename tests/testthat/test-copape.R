@@ -108,48 +108,83 @@ if (FALSE) {
   dplyr::count(d_males, paternalped_id)
 }
 
-test_that("Input validation", {
+
+test_that("validate_merge_input()", {
   expect_error(
-    merge_certain_pedigree_randomly(
-      pids = dplyr::pull(d_males, pid),
-      pids_dad = dplyr::pull(d_males, pid_dad),
-      birthyears = dplyr::pull(d_males, birthyear),
-      paternalped_ids = dplyr::pull(d_males, paternalped_id),
-      pedid_to_merge = -1),
-    regexp = "^pedid_to_merge must be >= 1$"
+    validate_merge_input(pids = 1, 
+                         pids_dad = NA, 
+                         birthyears = 0, 
+                         paternalped_ids = 1),
+    NA) # No error
+  
+  # pid cannot be NA, and must be >= 1
+  expect_error(
+    validate_merge_input(
+      pids = c(NA, 2L),
+      pids_dad = c(NA, NA),
+      birthyears = c(NA, NA),
+      paternalped_ids = c(1L, 2L)),
+    regexp = "^pid cannot be NA$"
   )
   
+  # TODO: Check pids unique!
+  
+  # pid_dad either NA or >= 1
   expect_error(
-    merge_certain_pedigree_randomly(
-      pids = dplyr::pull(d_males, pid),
-      pids_dad = dplyr::pull(d_males, pid_dad),
-      birthyears = dplyr::pull(d_males, birthyear),
-      paternalped_ids = dplyr::pull(d_males, paternalped_id),
-      pedid_to_merge = 10),
-    regexp = "^key not found$"
+    validate_merge_input(
+      pids = c(1L, 2L),
+      pids_dad = c(-1L, NA),
+      birthyears = c(NA, NA),
+      paternalped_ids = c(1L, 2L)),
+    regexp = "^pid_dad must be NA or >= 1$"
   )
   
+  # birthyears free
+  
+  # paternalped_ids cannot be NA, and must be >= 1 
   expect_error(
-    merge_certain_pedigree_randomly(
-      pids = dplyr::pull(d_males, pid),
-      pids_dad = dplyr::pull(d_males, pid_dad),
-      birthyears = dplyr::pull(d_males, birthyear),
-      paternalped_ids = dplyr::pull(d_males, paternalped_id),
-      pedid_to_merge = 1,
-      no_surrogate_ancestors = 10),
-    regexp = "^Not enough pedigrees to perform that number of ancestors$"
+    validate_merge_input(
+      pids = c(1L, 2L),
+      pids_dad = c(1L, NA),
+      birthyears = c(NA, NA),
+      paternalped_ids = c(NA, 2L)),
+    regexp = "^ped_id cannot be NA$"
   )
 })
 
 
-test_that("Small test of merge_certain_pedigree_randomly", {
+
+test_that("validate_sons_configs()", {
+  expect_error(
+    validate_sons_configs(sons_raw),
+    NA) # No error
   
-  res <- merge_certain_pedigree_randomly(
+  expect_error(validate_sons_configs(list(c(28, 30), c(24))), 
+               regexp = NA) # No error
+  
+  expect_error(validate_sons_configs(list()), 
+               regexp = "^sons_configs cannot be empty$")
+  
+  # Error in converting NULL to IntegerVector:
+  expect_error(validate_sons_configs(list(c(28, 30), c())), 
+               class = "Rcpp::not_compatible")
+  
+  expect_error(validate_sons_configs(list(c(28, 30), c(-1))), 
+               regexp = "age <= 0")
+})
+
+
+
+test_that("TBA", {
+  res <- merge_pedigree(
     pids = dplyr::pull(d_males, pid),
-    pids_dad = dplyr::pull(d_males, pid_dad),
-    birthyears = dplyr::pull(d_males, birthyear),
+    pids_dad = dplyr::pull(d_males, pid_dad),  
+    birthyears = dplyr::pull(d_males, birthyear), 
     paternalped_ids = dplyr::pull(d_males, paternalped_id),
-    pedid_to_merge = 1,
-    no_surrogate_ancestors = 1)
-  
+    pedid_to_merge = 12,
+    sons_configs = test_sons_raw,
+    no_surrogate_ancestors = 1,
+    surr_pid_start = 50000000,
+    verbose = FALSE)
+  res
 })

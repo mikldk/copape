@@ -5,26 +5,9 @@
 
 using namespace Rcpp;
 
-// proto_merge_all_random
-Rcpp::DataFrame proto_merge_all_random(const Rcpp::IntegerVector& pids, const Rcpp::IntegerVector& pids_dad, const Rcpp::IntegerVector& birthyears, const Rcpp::IntegerVector& paternalped_ids, int max_it, int surr_pid_start, bool verbose);
-RcppExport SEXP _copape_proto_merge_all_random(SEXP pidsSEXP, SEXP pids_dadSEXP, SEXP birthyearsSEXP, SEXP paternalped_idsSEXP, SEXP max_itSEXP, SEXP surr_pid_startSEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type pids(pidsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type pids_dad(pids_dadSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type birthyears(birthyearsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type paternalped_ids(paternalped_idsSEXP);
-    Rcpp::traits::input_parameter< int >::type max_it(max_itSEXP);
-    Rcpp::traits::input_parameter< int >::type surr_pid_start(surr_pid_startSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(proto_merge_all_random(pids, pids_dad, birthyears, paternalped_ids, max_it, surr_pid_start, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
-// merge_certain_pedigree_randomly
-Rcpp::DataFrame merge_certain_pedigree_randomly(const Rcpp::IntegerVector& pids, const Rcpp::IntegerVector& pids_dad, const Rcpp::IntegerVector& birthyears, const Rcpp::IntegerVector& paternalped_ids, const int pedid_to_merge, int no_surrogate_ancestors, int surr_pid_start, bool verbose);
-RcppExport SEXP _copape_merge_certain_pedigree_randomly(SEXP pidsSEXP, SEXP pids_dadSEXP, SEXP birthyearsSEXP, SEXP paternalped_idsSEXP, SEXP pedid_to_mergeSEXP, SEXP no_surrogate_ancestorsSEXP, SEXP surr_pid_startSEXP, SEXP verboseSEXP) {
+// merge_pedigree
+Rcpp::DataFrame merge_pedigree(const Rcpp::IntegerVector& pids, const Rcpp::IntegerVector& pids_dad, const Rcpp::IntegerVector& birthyears, const Rcpp::IntegerVector& paternalped_ids, const int pedid_to_merge, const Rcpp::ListOf<Rcpp::IntegerVector>& sons_configs, const int no_surrogate_ancestors, const int surr_pid_start, const bool verbose);
+RcppExport SEXP _copape_merge_pedigree(SEXP pidsSEXP, SEXP pids_dadSEXP, SEXP birthyearsSEXP, SEXP paternalped_idsSEXP, SEXP pedid_to_mergeSEXP, SEXP sons_configsSEXP, SEXP no_surrogate_ancestorsSEXP, SEXP surr_pid_startSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -33,10 +16,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type birthyears(birthyearsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type paternalped_ids(paternalped_idsSEXP);
     Rcpp::traits::input_parameter< const int >::type pedid_to_merge(pedid_to_mergeSEXP);
-    Rcpp::traits::input_parameter< int >::type no_surrogate_ancestors(no_surrogate_ancestorsSEXP);
-    Rcpp::traits::input_parameter< int >::type surr_pid_start(surr_pid_startSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(merge_certain_pedigree_randomly(pids, pids_dad, birthyears, paternalped_ids, pedid_to_merge, no_surrogate_ancestors, surr_pid_start, verbose));
+    Rcpp::traits::input_parameter< const Rcpp::ListOf<Rcpp::IntegerVector>& >::type sons_configs(sons_configsSEXP);
+    Rcpp::traits::input_parameter< const int >::type no_surrogate_ancestors(no_surrogate_ancestorsSEXP);
+    Rcpp::traits::input_parameter< const int >::type surr_pid_start(surr_pid_startSEXP);
+    Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(merge_pedigree(pids, pids_dad, birthyears, paternalped_ids, pedid_to_merge, sons_configs, no_surrogate_ancestors, surr_pid_start, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -64,6 +48,16 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// validate_sons_configs
+void validate_sons_configs(const Rcpp::ListOf<Rcpp::IntegerVector>& sons_configs);
+RcppExport SEXP _copape_validate_sons_configs(SEXP sons_configsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::ListOf<Rcpp::IntegerVector>& >::type sons_configs(sons_configsSEXP);
+    validate_sons_configs(sons_configs);
+    return R_NilValue;
+END_RCPP
+}
 // random_index
 int random_index(int n);
 RcppExport SEXP _copape_random_index(SEXP nSEXP) {
@@ -77,10 +71,10 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_copape_proto_merge_all_random", (DL_FUNC) &_copape_proto_merge_all_random, 7},
-    {"_copape_merge_certain_pedigree_randomly", (DL_FUNC) &_copape_merge_certain_pedigree_randomly, 8},
+    {"_copape_merge_pedigree", (DL_FUNC) &_copape_merge_pedigree, 9},
     {"_copape_validate_merge_input", (DL_FUNC) &_copape_validate_merge_input, 4},
     {"_copape_validate_surr_pid_start", (DL_FUNC) &_copape_validate_surr_pid_start, 2},
+    {"_copape_validate_sons_configs", (DL_FUNC) &_copape_validate_sons_configs, 1},
     {"_copape_random_index", (DL_FUNC) &_copape_random_index, 1},
     {NULL, NULL, 0}
 };

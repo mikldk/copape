@@ -10,20 +10,3 @@ test_that("random_index()", {
                  info = paste0("n = ", n))
   }
 })
-
-test_that("validate_merge_input()", {
-  expect_error(
-    validate_merge_input(pids = 1, 
-                         pids_dad = NA, 
-                         birthyears = 0, 
-                         paternalped_ids = 1),
-    NA) # No error
-  
-  # pid cannot be NA, and must be >= 1
-  
-  # pid_dad either NA or >= 1
-  
-  # birthyears free
-  
-  # paternalped_ids cannot be NA, and must be >= 1 
-})

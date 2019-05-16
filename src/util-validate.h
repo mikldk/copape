@@ -27,4 +27,6 @@ void validate_key_exists(
     const std::unordered_map<int, std::vector<int>>& map,
     const int key);
 
+void validate_sons_configs(const Rcpp::ListOf<Rcpp::IntegerVector>& sons_configs);
+
 #endif

@@ -79,6 +79,37 @@ std::unordered_map<int, std::vector<int>> vector_to_hash(const Rcpp::IntegerVect
   return map;
 }
 
+std::unordered_map<int, int> find_founder_indices(
+    const std::unordered_map<int, std::vector<int>>& pedid_to_indices,
+    const Rcpp::IntegerVector& pids_dad) {
+  
+  std::unordered_map<int, int> pedid_founder_indices;
+  
+  for (auto v : pedid_to_indices) {
+    bool found = false;
+    
+    for (auto i : v.second) {
+      if (Rcpp::IntegerVector::is_na(pids_dad[i])) {
+        if (found) {
+          Rcpp::stop("Pedigree have more than one founder. Unexpected.");
+        }
+        
+        pedid_founder_indices[v.first] = i;
+        found = true;
+        // TODO: break instead?
+      }
+    }
+    
+    if (!found) {
+      Rcpp::stop("Pedigree did not have a founder. Unexpected.");
+    }
+  }
+  
+  return pedid_founder_indices;
+}
+
+
+/*
 // Returns a shuffled vector
 std::vector<int> sample_pedids_to_merge(const std::unordered_map<int, std::vector<int>>& map,
                                         const int size,
@@ -115,3 +146,4 @@ std::vector<int> sample_pedids_to_merge(const std::unordered_map<int, std::vecto
   
   return selected_pedids;
 }
+ */
