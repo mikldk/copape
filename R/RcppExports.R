@@ -15,8 +15,8 @@
 #' @return Only individuals in new pedigree.
 #' 
 #' @export
-merge_pedigree <- function(pids, pids_dad, birthyears, paternalped_ids, pedid_to_merge, sons_configs, no_surrogate_ancestors = 1L, surr_pid_start = 50000000L, verbose = FALSE) {
-    .Call('_copape_merge_pedigree', PACKAGE = 'copape', pids, pids_dad, birthyears, paternalped_ids, pedid_to_merge, sons_configs, no_surrogate_ancestors, surr_pid_start, verbose)
+merge_pedigree <- function(pids, pids_dad, birthyears, paternalped_ids, pedid_to_merge, sons_configs, no_surrogate_ancestors = 1L, stop_birthyear = 1970L, surr_pid_start = 50000000L, verbose = FALSE) {
+    .Call('_copape_merge_pedigree', PACKAGE = 'copape', pids, pids_dad, birthyears, paternalped_ids, pedid_to_merge, sons_configs, no_surrogate_ancestors, stop_birthyear, surr_pid_start, verbose)
 }
 
 #' Validate merge input

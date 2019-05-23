@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // merge_pedigree
-Rcpp::DataFrame merge_pedigree(const Rcpp::IntegerVector& pids, const Rcpp::IntegerVector& pids_dad, const Rcpp::IntegerVector& birthyears, const Rcpp::IntegerVector& paternalped_ids, const int pedid_to_merge, const Rcpp::ListOf<Rcpp::IntegerVector>& sons_configs, const int no_surrogate_ancestors, const int surr_pid_start, const bool verbose);
-RcppExport SEXP _copape_merge_pedigree(SEXP pidsSEXP, SEXP pids_dadSEXP, SEXP birthyearsSEXP, SEXP paternalped_idsSEXP, SEXP pedid_to_mergeSEXP, SEXP sons_configsSEXP, SEXP no_surrogate_ancestorsSEXP, SEXP surr_pid_startSEXP, SEXP verboseSEXP) {
+Rcpp::DataFrame merge_pedigree(const Rcpp::IntegerVector& pids, const Rcpp::IntegerVector& pids_dad, const Rcpp::IntegerVector& birthyears, const Rcpp::IntegerVector& paternalped_ids, const int pedid_to_merge, const Rcpp::ListOf<Rcpp::IntegerVector>& sons_configs, const int no_surrogate_ancestors, const int stop_birthyear, const int surr_pid_start, const bool verbose);
+RcppExport SEXP _copape_merge_pedigree(SEXP pidsSEXP, SEXP pids_dadSEXP, SEXP birthyearsSEXP, SEXP paternalped_idsSEXP, SEXP pedid_to_mergeSEXP, SEXP sons_configsSEXP, SEXP no_surrogate_ancestorsSEXP, SEXP stop_birthyearSEXP, SEXP surr_pid_startSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,9 +19,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type pedid_to_merge(pedid_to_mergeSEXP);
     Rcpp::traits::input_parameter< const Rcpp::ListOf<Rcpp::IntegerVector>& >::type sons_configs(sons_configsSEXP);
     Rcpp::traits::input_parameter< const int >::type no_surrogate_ancestors(no_surrogate_ancestorsSEXP);
+    Rcpp::traits::input_parameter< const int >::type stop_birthyear(stop_birthyearSEXP);
     Rcpp::traits::input_parameter< const int >::type surr_pid_start(surr_pid_startSEXP);
     Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(merge_pedigree(pids, pids_dad, birthyears, paternalped_ids, pedid_to_merge, sons_configs, no_surrogate_ancestors, surr_pid_start, verbose));
+    rcpp_result_gen = Rcpp::wrap(merge_pedigree(pids, pids_dad, birthyears, paternalped_ids, pedid_to_merge, sons_configs, no_surrogate_ancestors, stop_birthyear, surr_pid_start, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -72,7 +73,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_copape_merge_pedigree", (DL_FUNC) &_copape_merge_pedigree, 9},
+    {"_copape_merge_pedigree", (DL_FUNC) &_copape_merge_pedigree, 10},
     {"_copape_validate_merge_input", (DL_FUNC) &_copape_validate_merge_input, 4},
     {"_copape_validate_surr_pid_start", (DL_FUNC) &_copape_validate_surr_pid_start, 2},
     {"_copape_validate_sons_configs", (DL_FUNC) &_copape_validate_sons_configs, 1},

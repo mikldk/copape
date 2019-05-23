@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <memory> // shared_ptr + make_unique
+#include <iostream>
 
 class Individual {
 private:
@@ -34,10 +35,13 @@ public:
   std::shared_ptr<Individual> get_father() const;
   std::vector< std::shared_ptr<Individual> > get_children() const;
   
-  void set_father(const Individual& father);
-  void add_child(const Individual& child);
+  void set_father(const std::shared_ptr<Individual> father);
+  void add_child(const std::shared_ptr<Individual> child);
   
   ////////////////////////////////////////////////////////////  
+  
+  friend std::ostream& operator<<(std::ostream &out, const Individual &m);
+  
 };
 
 #endif

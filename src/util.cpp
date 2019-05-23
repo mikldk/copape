@@ -10,12 +10,8 @@
 //' @param n upper limit (not included)
 // [[Rcpp::export]]
 int random_index(int n) {
-  if (n < 0) {
-    Rcpp::stop("n must be >= 0");  
-  }
-  
-  if (n == 0) {
-    return 0;
+  if (n <= 0) {
+    Rcpp::stop("n must be >= 1");  
   }
   
   double u = R::runif(0, 1);

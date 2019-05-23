@@ -7,7 +7,7 @@ generate_data <- function() {
 #   usethis::use_data(sons_dist,
 #                     internal = TRUE, overwrite = TRUE)
 
-  test_sons_raw <- c(rep(list(8), 4), 
+  test_sons_raw <- c(rep(list(30), 4), 
                      rep(list(c(27, 29)), 3),
                      rep(list(c(25, 27, 29)), 2),
                      rep(list(c(18, 25, 35, 45)), 1)

@@ -42,11 +42,23 @@ std::vector< std::shared_ptr<Individual> > Individual::get_children() const {
   return m_children;
 }
 
-void Individual::set_father(const Individual& father) {
-  m_father = std::make_shared<Individual>(father);
+void Individual::set_father(const std::shared_ptr<Individual> father) {
+  m_father = father;
 }
 
-void Individual::add_child(const Individual& child) {
-  m_children.push_back( std::make_shared<Individual>(child) );
+void Individual::add_child(const std::shared_ptr<Individual> child) {
+  m_children.push_back(child);
 }
 
+std::ostream& operator<<(std::ostream &os, const Individual& m) { 
+  std::string father_pid = 
+    (m.get_father() ? std::to_string(m.get_father()->get_pid()) : "(NA)");
+  
+  os << (m.is_surrogate() ? "[SURR]" : "[    ]") << ": " << 
+    "pid = " << m.get_pid() << ",\t" << 
+    "birthyear = " << m.get_birthyear() << ",\t" <<
+    "father pid = " << father_pid << ",\t" << 
+    "#children = " << m.get_children().size();
+  
+  return os;
+}

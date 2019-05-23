@@ -25,7 +25,9 @@ d_males <-
         18944652,
         6962050,
         418428,
-        14416513
+        14416513,
+        
+        555
       ),
       pid_dad = c(
         NA,
@@ -49,6 +51,8 @@ d_males <-
         NA,
         NA,
         NA,
+        NA,
+        
         NA
       ),
       birthyear = c(
@@ -73,7 +77,9 @@ d_males <-
         1960,
         1973,
         2015,
-        2008
+        2008,
+        
+        1926
       ),
       paternalped_id = c(
         12L,
@@ -97,11 +103,13 @@ d_males <-
         4L,
         3L,
         2L,
-        1L
+        1L,
+        
+        555L
       )
     ),
     class = "data.frame",
-    row.names = c(NA,-22L)
+    row.names = c(NA,-23L)
   )
 
 if (FALSE) {
@@ -156,7 +164,7 @@ test_that("validate_merge_input()", {
 
 test_that("validate_sons_configs()", {
   expect_error(
-    validate_sons_configs(sons_raw),
+    validate_sons_configs(test_sons_raw),
     NA) # No error
   
   expect_error(validate_sons_configs(list(c(28, 30), c(24))), 
@@ -176,12 +184,15 @@ test_that("validate_sons_configs()", {
 
 
 test_that("TBA", {
-  d_males
   pedid_to_merge <- 38
-  d_males %>% 
-    dplyr::mutate(PedOfInt = ifelse(paternalped_id == pedid_to_merge, "X", ""),
-                  PedOfIntFounder = ifelse(paternalped_id == pedid_to_merge & is.na(pid_dad), "XX", ""))
+  # d_males %>% 
+  #   dplyr::mutate(PedOfInt = ifelse(paternalped_id == pedid_to_merge, "X", ""),
+  #                 PedOfIntFounder = ifelse(paternalped_id == pedid_to_merge & is.na(pid_dad), "XX", ""))
   
+  d_males %>% 
+    dplyr::filter(paternalped_id == pedid_to_merge)
+  
+  set.seed(1)
   res <- merge_pedigree(
     pids = dplyr::pull(d_males, pid),
     pids_dad = dplyr::pull(d_males, pid_dad),  
@@ -189,8 +200,12 @@ test_that("TBA", {
     paternalped_ids = dplyr::pull(d_males, paternalped_id),
     pedid_to_merge = pedid_to_merge,
     sons_configs = test_sons_raw,
-    no_surrogate_ancestors = 1,
+    no_surrogate_ancestors = 3,
+    stop_birthyear = 1970,
     surr_pid_start = 50000000,
     verbose = TRUE)
+  
+  
   res
 })
+
