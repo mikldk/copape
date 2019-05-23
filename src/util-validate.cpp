@@ -1,4 +1,4 @@
-// [[Rcpp::plugins(cpp11)]]
+// [[Rcpp::plugins(cpp17)]]
 #include <Rcpp.h>
 
 #include <cmath>

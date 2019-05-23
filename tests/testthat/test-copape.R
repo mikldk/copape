@@ -176,15 +176,21 @@ test_that("validate_sons_configs()", {
 
 
 test_that("TBA", {
+  d_males
+  pedid_to_merge <- 38
+  d_males %>% 
+    dplyr::mutate(PedOfInt = ifelse(paternalped_id == pedid_to_merge, "X", ""),
+                  PedOfIntFounder = ifelse(paternalped_id == pedid_to_merge & is.na(pid_dad), "XX", ""))
+  
   res <- merge_pedigree(
     pids = dplyr::pull(d_males, pid),
     pids_dad = dplyr::pull(d_males, pid_dad),  
     birthyears = dplyr::pull(d_males, birthyear), 
     paternalped_ids = dplyr::pull(d_males, paternalped_id),
-    pedid_to_merge = 12,
+    pedid_to_merge = pedid_to_merge,
     sons_configs = test_sons_raw,
     no_surrogate_ancestors = 1,
     surr_pid_start = 50000000,
-    verbose = FALSE)
+    verbose = TRUE)
   res
 })

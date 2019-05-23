@@ -20,7 +20,7 @@ Imports:
     magrittr,
     tibble
 LinkingTo: Rcpp
-SystemRequirements: C++11
+SystemRequirements: C++17
 RoxygenNote: 6.1.1
 Suggests: 
     testthat,

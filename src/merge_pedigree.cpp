@@ -1,11 +1,13 @@
-// [[Rcpp::plugins(cpp11)]]
+// [[Rcpp::plugins(cpp17)]]
 #include <Rcpp.h>
 
 #include <cmath>
 #include <vector>
 #include <unordered_map>
 #include <queue>
+#include <memory>
 
+#include "copape_types.h"
 #include "util.h"
 #include "util-validate.h"
 
@@ -30,8 +32,7 @@
  * `sample_ancestor_with_children(P)`:
  *   a) Sample a sons configuration (number of sons and ages).
  *   b) Randomly pick which of the sons P is. 
- *      Now birthyear of new surrogate ancestor can be calculated.
- *      And birthyear of the other sons than be can be calculated.
+ *      Now birthyear of new surrogate ancestor and the the other sons can be calculated.
  *   c) Sample among the other existing pedigree founders some with those birthyears.
  *        + If none exists:
  *            METHOD 1 (rejection):
@@ -47,86 +48,22 @@
  *        x
  *      / | \
  *     P  o  o
- * 
+ *  
  * ---------------------------------------------------------------------
  * Induction step: Attach new surrogate ancestor to surrogate ancestor.
  * ---------------------------------------------------------------------
  * 
- * Let Q be the founder.
+ * Same as above. But step c):
+ * If birthyear(y) < min(observed_birthyears): create surrogate individual, 
+ * and continue sampling sons and picking until required birthyear is within range
+ * and then sample according to METHOD 1 (rejection) or METHOD 2 (relaxation).
  * 
- *        Q
- *      / | \
- *     P  o  o
- * 
- *  Same as base step above for Q = P:
- *  Except that some new surrogate children must be added.
- *  
- * `sample_ancestor_with_children(Q)`:
- *   a) Sample a sons configuration (number of sons and ages).
- *   b) Randomly pick which of the sons Q is. 
- *      Now birthyear of new surrogate ancestor can be calculated.
- *      And birthyear of the other sons than be can be calculated.
- *   c) Sample among the other existing pedigree founders some with those birthyears.
- *        + If none exists:
- *            METHOD 1 (rejection):
- *              Go to a) 
- *              [but only `max_rejections` number of times]
- *            
- *            METHOD 2 (relaxation):
- *              Try birthyear at distance one, distance two, ... 
- *              [but only up to `max_years_diff`]
- *          
- *   Now we have (e.g. for three sons):
- *   
- *            x _____
- *          /  \      \
- *        Q      x     x
- *      / | \
- *     P  o  o
- *     
- *  Let y != Q be children to the new founder (except Q):
- *
- *
- * Generation
- * 
- * 2         x  _____
- *          /  \      \
- * 1       Q      y     y
- *       / | \
- * 0    P  o  o
- *  
- *  
- *  For each y:
- *  `sample_descendents(y)`:   
- *   a) If `generation(y) > generation(P) + 1`
- *        Sample a sons configuration (number of sons and ages).
- *        Create surrogate individuals, z, as children to y.
- *        Call `sample_descendents(z)`
- *   b) If `generation(y) = generation(P) + 1`
- *        Step c) from `sample_ancestor_with_children`:
- *        I.e. attach to existing pedigrees.
- *        
- *   TODO:
- *   HOW DOES DISCRETE GENERATIONS WORK WITH THIS?
- *   DO WE NEED GENERATION AND BIRTHYEAR? OR JUST BIRTHYEAR?
- *   FIXME: JUST BIRTHYEAR!
- *          TRY TO SAMPLE INDIVIDUALS WITH NEEDED BIRTHYEARS. 
- *          IF NONE EXISTS, INTRODUCE SURROGATE.
- *          WITH SOME SURROGATE ANCESTORS, WE KNOW THAT SURROGATE MUST BE INTRODUCED.
- *          BUT THERE CAN BE BIAS?!
- *          PARAMETER CONTROLLING THIS?
- *     
- *     
- *  Always two sons:
- * 
- *             x
- *        ____/ \____
- *       x           x
- *      / \         / \
- *    x     x     x     x
- *   / \   / \   / \   / \
- *  P   o o   o o   o o   o
+ * Thus, only need 1 `sample_ancestor_with_children(x)`, where `x` initially is PoI.
  */
+
+void sample_ancestor_with_children() {
+  
+}
 
 
 //' Merge a pedigree randomly
@@ -175,43 +112,78 @@ Rcpp::DataFrame merge_pedigree(
   ////////////////////////////////////////////////////////////////
   
   
-  
+  ////////////////////////////////////////////////////////////////
+  // Make map from birthyear to founder indices for faster look-up  
+  //--------------------------------------------------------------
+  std::unordered_map<int, std::vector<int>> map_birthyear_founder_index;
+  int n = birthyears.length();
+  for (int i = 0; i < n; ++i) {
+    if (Rcpp::IntegerVector::is_na(pids_dad[i])) {
+      map_birthyear_founder_index[ birthyears[i] ].push_back(i);
+    }
+  }
+  ////////////////////////////////////////////////////////////////
   
   ////////////////////////////////////////////////////////////////
   // Make map from ped to indices for faster look-up  
   //--------------------------------------------------------------
-  std::unordered_map<int, std::vector<int>> pedid_to_indices = 
+  std::unordered_map< int, std::vector<int> > pedid_to_indices = 
     vector_to_hash(paternalped_ids);
   //print_map_int_vecint(pedid_to_indices);
   
   // Check that pedid_to_merge exists
   validate_key_exists(pedid_to_indices, pedid_to_merge);
-  ////////////////////////////////////////////////////////////////
   
-  
-
-  ////////////////////////////////////////////////////////////////
-  // Make map from ped to indices for faster look-up  
-  //--------------------------------------------------------------
-  std::unordered_map<int, int> pedid_founder_indices = find_founder_indices(
-    pedid_to_indices, pids_dad);
-  Rcpp::print(Rcpp::wrap(pedid_founder_indices));
-  Rcpp::stop("to here...");
-  ////////////////////////////////////////////////////////////////
-  
-  
-  ////////////////////////////////////////////////////////////////
-  // Book-keeping of an index' children (not pid, but index)
-  // Used for surrogate fathers.
-  // i.e. 
-  Rcpp:.stop("Class for surrogate founders? And 'children' - real individuals?");
-  //--------------------------------------------------------------
-  std::unordered_map<int, std::vector<int>> pedid_founder_indices = 
+  // Map from pedid to index
+  std::unordered_map<int, int> map_pedid_founder_indices = 
     find_founder_indices(pedid_to_indices, pids_dad);
+  
+  int idx_PoI_founder = map_pedid_founder_indices[pedid_to_merge];
+  
+  if (verbose) {
+    Rcpp::Rcout << "pedid_to_merge = " << 
+      pedid_to_merge << " has founder at row " << 
+        (idx_PoI_founder + 1) << std::endl;
+  }
+  
   ////////////////////////////////////////////////////////////////
+  // Construct all individuals in PoI pedigree
+  //--------------------------------------------------------------
+  std::vector<int> pedigree_PoI = pedid_to_indices.find(pedid_to_merge)->second;
+  std::shared_ptr<Individual> PoI_founder = nullptr;
+  std::vector< std::shared_ptr<Individual> > indvs_new;
+  int pid_PoI_founder = pids[idx_PoI_founder];
+  
+  // !! These do not need all the connections established (sons/father)
+  //    as they will never be used !!
+  for (int idx : pedigree_PoI) {
+    Individual indv(pids[idx], birthyears[idx], false);
+    std::shared_ptr<Individual> indv_ptr = std::make_shared<Individual>(indv);
+      
+    if (indv.get_pid() == pid_PoI_founder) {
+      if (PoI_founder != nullptr) {
+        Rcpp::stop("Expected only one founder");
+      }
+      
+      PoI_founder = indv_ptr;
+    }
     
-    
-    
+    indvs_new.push_back(indv_ptr);
+  }
+  
+  if (PoI_founder == nullptr) {
+    Rcpp::stop("Expected one founder");
+  }
+  
+  if (verbose) {
+    Rcpp::Rcout << "pedid_to_merge = " << 
+      pedid_to_merge << " has founder with pid = " << 
+        PoI_founder->get_pid() << std::endl;
+  }
+  
+  ////////////////////////////////////////////////////////////////
+  
+ 
   
   ////////////////////////////////////////////////////////////////
   
