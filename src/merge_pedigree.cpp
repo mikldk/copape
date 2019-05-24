@@ -70,11 +70,12 @@ std::vector<int> sample_sons_ages(const std::vector< std::vector<int> >& sons_co
 std::shared_ptr<Individual> get_or_create_indv(
     const int wanted_birthyear,
     int* next_pid,
+    std::unordered_map< int, std::shared_ptr<Individual> >& indvs_new,
     const std::unordered_map<int, std::vector<int>>& map_birthyear_founder_index,
     const std::unordered_map<int, int> map_pedid_founder_indices,
     const Rcpp::IntegerVector& pids,
     const Rcpp::IntegerVector& paternalped_ids,
-    std::vector<int>& pedids_new
+    std::set<int>& pedids_new
 ) {
   // FIXME: Implement method 1/2, for now just for easier implementation:
   
@@ -89,6 +90,8 @@ std::shared_ptr<Individual> get_or_create_indv(
     Individual surrogate_indv(pid, wanted_birthyear, true);
     std::shared_ptr<Individual> surrogate_indv_ptr = 
       std::make_shared<Individual>(surrogate_indv);
+    
+    indvs_new[pid] = surrogate_indv_ptr;
     
     return surrogate_indv_ptr;
   }
@@ -115,14 +118,25 @@ std::shared_ptr<Individual> get_or_create_indv(
   
   int founder_index = find_founder_idx->second;
   
-  pedids_new.push_back(pedid);
+  pedids_new.insert(pedid);
   
   int founder_pid = pids[founder_index];
   
+  // Check if founder already created as individual:
+  std::unordered_map< int, std::shared_ptr<Individual> >::const_iterator find = 
+    indvs_new.find(founder_pid);
   
-  Individual existing_indv(founder_pid, wanted_birthyear, false);
+  if (find == indvs_new.end()) {
+    Individual existing_indv(founder_pid, wanted_birthyear, false);
+    std::shared_ptr<Individual> existing_indv_ptr = 
+      std::make_shared<Individual>(existing_indv);
+    indvs_new[founder_pid] = existing_indv_ptr;
+    
+    return existing_indv_ptr;
+  } 
+  
   std::shared_ptr<Individual> existing_indv_ptr = 
-    std::make_shared<Individual>(existing_indv);
+    find->second;
   
   return existing_indv_ptr;
 }
@@ -130,12 +144,12 @@ std::shared_ptr<Individual> get_or_create_indv(
 void add_children_until_existing_individual(
     std::shared_ptr<Individual> father_ptr, 
     int* next_pid,
-    std::vector< std::shared_ptr<Individual> >& indvs_new,
+    std::unordered_map< int, std::shared_ptr<Individual> >& indvs_new,
     const std::unordered_map<int, std::vector<int>>& map_birthyear_founder_index,
     const std::unordered_map<int, int> map_pedid_founder_indices,
     const Rcpp::IntegerVector& pids,
     const Rcpp::IntegerVector& paternalped_ids,
-    std::vector<int>& pedids_new,
+    std::set<int>& pedids_new,
     const std::vector< std::vector<int> >& sons_configs,
     const int stop_birthyear) {
   
@@ -149,16 +163,16 @@ void add_children_until_existing_individual(
   for (int age : sons_ages) {
     int son_birthyear = father_ptr->get_birthyear() + age;
     
-    Rcpp::Rcout << "son_birthyear = " << son_birthyear << "; father_birthyear = " << father_ptr->get_birthyear() << std::endl;
+    // Rcpp::Rcout << "son_birthyear = " << son_birthyear << "; father_birthyear = " << father_ptr->get_birthyear() << std::endl;
 
     std::shared_ptr<Individual> son_ptr = 
       get_or_create_indv(
         son_birthyear,
         next_pid,
+        indvs_new,
         map_birthyear_founder_index, map_pedid_founder_indices,
         pids, paternalped_ids, pedids_new);
 
-    indvs_new.push_back(son_ptr);
     father_ptr->add_child(son_ptr);
     son_ptr->set_father(father_ptr);
     
@@ -184,12 +198,12 @@ void add_children_until_existing_individual(
 void add_ancestor_with_children(
     std::shared_ptr<Individual> individual, 
     int* next_pid,
-    std::vector< std::shared_ptr<Individual> >& indvs_new,
+    std::unordered_map< int, std::shared_ptr<Individual> >& indvs_new,
     const std::unordered_map<int, std::vector<int>>& map_birthyear_founder_index,
     const std::unordered_map<int, int> map_pedid_founder_indices,
     const Rcpp::IntegerVector& pids,
     const Rcpp::IntegerVector& paternalped_ids,
-    std::vector<int>& pedids_new,
+    std::set<int>& pedids_new,
     const std::vector< std::vector<int> >& sons_configs,
     const int stop_birthyear) {
   
@@ -204,11 +218,11 @@ void add_ancestor_with_children(
   
   int father_birthyear = individual->get_birthyear() - sons_ages[rnd_idx];
   
-  
   std::shared_ptr<Individual> father_ptr = 
     get_or_create_indv(
       father_birthyear,
       next_pid,
+      indvs_new,
       map_birthyear_founder_index, map_pedid_founder_indices,
       pids, paternalped_ids, pedids_new);
   
@@ -217,7 +231,6 @@ void add_ancestor_with_children(
   //Rcpp::print(Rcpp::wrap(father_birthyear));
   //Rcpp::Rcout << std::endl;
   
-  indvs_new.push_back(father_ptr);
   father_ptr->add_child(individual);
   individual->set_father(father_ptr);
   
@@ -233,11 +246,10 @@ void add_ancestor_with_children(
       get_or_create_indv(
         son_birthyear,
         next_pid,
+        indvs_new,
         map_birthyear_founder_index, map_pedid_founder_indices,
         pids, paternalped_ids, pedids_new);
     
-    
-    indvs_new.push_back(son_ptr);
     father_ptr->add_child(son_ptr);
     son_ptr->set_father(father_ptr);
     
@@ -362,48 +374,33 @@ Rcpp::DataFrame merge_pedigree(
   }
   
   ////////////////////////////////////////////////////////////////
-  // Construct all individuals in PoI pedigree
+  // Set (unique values) for registering pedigrees that get merged
   //--------------------------------------------------------------
-  std::vector<int> pedigree_PoI = pedid_to_indices.find(pedid_to_merge)->second;
-  std::shared_ptr<Individual> PoI_founder = nullptr;
-  std::vector< std::shared_ptr<Individual> > indvs_new;
-  std::vector<int> pedids_new;
-  int pid_PoI_founder = pids[idx_PoI_founder];
-  
-  // !! These do not need all the connections established (sons/father)
-  //    as they will never be used !!
-  for (int idx : pedigree_PoI) {
-    Individual indv(pids[idx], birthyears[idx], false);
-    std::shared_ptr<Individual> indv_ptr = std::make_shared<Individual>(indv);
-    
-    if (indv.get_pid() == pid_PoI_founder) {
-      if (PoI_founder != nullptr) {
-        Rcpp::stop("Expected only one founder");
-      }
-      
-      PoI_founder = indv_ptr;
-    }
-    
-    indvs_new.push_back(indv_ptr);
-  }
-  
-  if (PoI_founder == nullptr) {
-    Rcpp::stop("Expected one founder");
-  }
-  
-  if (verbose) {
-    Rcpp::Rcout << "pedid_to_merge = " << 
-      pedid_to_merge << " has founder with pid = " << 
-        PoI_founder->get_pid() << std::endl;
-  }
+  std::set<int> pedids_new;
   
   ////////////////////////////////////////////////////////////////
+  // Vector for surrogate individuals and pedigree founders
+  //--------------------------------------------------------------
+  std::unordered_map< int, std::shared_ptr<Individual> > indvs_new;
   
+  pedids_new.insert(pedid_to_merge);
+  
+  ////////////////////////////////////////////////////////////////
+  // Construct founder in PoI pedigree
+  //--------------------------------------------------------------
+  Individual PoI_founder(pids[idx_PoI_founder], birthyears[idx_PoI_founder], false);
+  std::shared_ptr<Individual> PoI_founder_ptr = 
+    std::make_shared<Individual>(PoI_founder);
+  
+  indvs_new[ pids[idx_PoI_founder] ] = PoI_founder_ptr;
+  
+  
+  ////////////////////////////////////////////////////////////////
   // Add ancestors.
+  //--------------------------------------------------------------
   // This also ensures children
-  std::shared_ptr<Individual> MRCA = PoI_founder;
-  pedids_new.push_back(pedid_to_merge);
-  
+  //--------------------------------------------------------------
+  std::shared_ptr<Individual> MRCA = PoI_founder_ptr;
   int next_pid = surr_pid_start;
   
   for (int k = 1; k <= no_surrogate_ancestors; ++k) {
@@ -427,8 +424,8 @@ Rcpp::DataFrame merge_pedigree(
   if (verbose) {
     Rcpp::Rcout << "New individiduals:" << std::endl;
     
-    for (auto indv_ptr : indvs_new) {
-      Individual indv = *indv_ptr;
+    for (auto& indv_ptr : indvs_new) {
+      Individual indv = *(indv_ptr.second);
       Rcpp::Rcout << indv << std::endl;
     }
   }
@@ -452,7 +449,12 @@ Rcpp::DataFrame merge_pedigree(
   std::vector<int> res_vec_birthyears;
   std::vector<bool> res_vec_surrogate;
   
-  // pedids_new
+  if (verbose) {
+    Rcpp::Rcout << "pedids_new:" << std::endl;
+    Rcpp::print(Rcpp::wrap(pedids_new));
+  }
+
+  // pedids_new, set with unique pedid's
   for (int ped_id : pedids_new) {
     const std::unordered_map< int, std::vector<int> >::const_iterator find =
       pedid_to_indices.find(ped_id);
@@ -477,8 +479,8 @@ Rcpp::DataFrame merge_pedigree(
   }
   
   // indvs_new
-  for (auto indv_ptr : indvs_new) {
-    Individual indv = *indv_ptr;
+  for (auto& indv_ptr : indvs_new) {
+    Individual indv = *(indv_ptr.second);
 
     res_vec_pids.push_back(indv.get_pid());
     res_vec_pids_dad.push_back(indv.get_father_pid_safe());
@@ -503,11 +505,10 @@ Rcpp::DataFrame merge_pedigree(
     }
   }
   
-  
   Rcpp::DataFrame res = Rcpp::DataFrame::create(
     Rcpp::Named("pid") = res_pids,
     Rcpp::Named("pid_dad") = res_pids_dad,
-    Rcpp::Named("birthyears") = res_birthyears,
+    Rcpp::Named("birthyear") = res_birthyears,
     Rcpp::Named("is_surrogate") = res_surrogate
   );
   

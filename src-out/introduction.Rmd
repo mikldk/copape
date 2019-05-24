@@ -13,7 +13,6 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   message = FALSE,
-  echo = TRUE,
   comment = "#>",
   fig.width = 8,
   fig.height = 5
@@ -22,6 +21,8 @@ knitr::opts_chunk$set(
 
 ```{r}
 library(tidyverse)
+library(igraph)
+library(ggraph)
 library(kinship2)
 library(malan)
 #library(copape)
@@ -29,7 +30,7 @@ devtools::load_all(".")
 ```
 
 ```{r}
-pedid_to_merge <- 7
+pedid_to_merge <- 38
 test_males %>% 
   filter(paternalped_id == pedid_to_merge)
 ```
@@ -38,6 +39,7 @@ test_males %>%
 ped_raw <- test_males %>% 
   filter(paternalped_id == pedid_to_merge) %>% 
   insert_missing_pids()
+ped_raw
 
 label <- ped_raw %>% 
   mutate(pid_chr = ifelse(is.na(birthyear), 
@@ -54,8 +56,29 @@ ped <- with(ped_raw, pedigree(id = pid,
 plot.pedigree(ped, cex = 0.5, id = label)
 ```
 
+```{r}
+el_raw <- test_males %>% 
+  filter(paternalped_id == pedid_to_merge) %>% 
+  add_dad_birthyear() %>% 
+  mutate(pid_chr = paste0(birthyear, "\n", "(", pid, ")"),
+         pid_dad_chr = paste0(birthyear_dad, "\n", "(", pid_dad, ")"))
+el_raw
 
-# Take 1
+el <- el_raw %>% 
+  filter(!is.na(pid_dad)) %>% 
+  select(pid_dad_chr, pid_chr) %>% 
+  as.matrix()
+el
+
+g <- igraph::graph_from_edgelist(el, directed = TRUE)
+ggraph(g, layout = "graphopt") + 
+  geom_edge_link(aes(start_cap = label_rect(node1.name),
+                     end_cap = label_rect(node2.name)), 
+                 arrow = arrow(length = unit(4, 'mm'))) + 
+  geom_node_text(aes(label = name)) +
+  theme_graph()
+```
+
 
 ```{r}
 set.seed(1)
@@ -67,8 +90,8 @@ res <- merge_pedigree(
   pedid_to_merge = pedid_to_merge,
   sons_configs = test_sons_configs,
   no_surrogate_ancestors = 3,
-  stop_birthyear = 1980,
-  surr_pid_start = 5000,
+  stop_birthyear = 1970,
+  surr_pid_start = 50000000,
   verbose = FALSE)
 res
 ```
@@ -76,6 +99,7 @@ res
 ```{r}
 ped_raw <- res %>% 
   insert_missing_pids()
+ped_raw
 
 label <- ped_raw %>% 
   mutate(pid_chr = ifelse(is.na(birthyear), 
@@ -83,12 +107,6 @@ label <- ped_raw %>%
                           paste0(birthyear, "\n", "(", pid, ")",
                                  ifelse(is_surrogate, "\nSURR", "")))) %>% 
   pull(pid_chr)
-clr <- ped_raw %>% 
-  mutate(clr = case_when(
-    sex == "female" ~ "lightgrey",
-    is_surrogate ~ "red",
-    TRUE ~ "blue")) %>% 
-  pull(clr)
 
 ped <- with(ped_raw, pedigree(id = pid, 
                               dadid = pid_dad, 
@@ -96,46 +114,37 @@ ped <- with(ped_raw, pedigree(id = pid,
                               sex = sex,
                               status = status))
 
-plot.pedigree(ped, cex = 0.5, id = label, col = clr)
-```
-
-```{r}
-d_old_peds <- res %>% 
-  filter(is_surrogate == FALSE) %>% 
-  left_join(test_males %>% select(pid, paternalped_id),
-            by = "pid")
-d_old_peds
-d_old_peds %>% 
-  group_by(paternalped_id) %>% 
-  summarise(n = length(pid),
-            pids = paste0(pid, collapse = ", "))
+plot.pedigree(ped, cex = 0.5, id = label)
 ```
 
 
-# Additional takes
-
 ```{r}
-set.seed(2)
+el_raw <- res %>% 
+  add_dad_birthyear() %>% 
+  add_dad_is_surrogate() %>% 
+  mutate(pid_chr = paste0(birthyear, #"\n", "(", pid, ")", 
+                          ifelse(is_surrogate, "\nSURR", "")),
+         pid_dad_chr = paste0(birthyear_dad, #"\n", "(", pid_dad, ")", 
+                              ifelse(is_surrogate_dad, "\nSURR", "")))
+el_raw
 
-res_lst <- lapply(1:10, function(i) { 
-  merge_pedigree(
-    pids = dplyr::pull(test_males, pid),
-    pids_dad = dplyr::pull(test_males, pid_dad),  
-    birthyears = dplyr::pull(test_males, birthyear), 
-    paternalped_ids = dplyr::pull(test_males, paternalped_id),
-    pedid_to_merge = pedid_to_merge,
-    sons_configs = test_sons_configs,
-    no_surrogate_ancestors = 3,
-    stop_birthyear = 1980,
-    surr_pid_start = 5000,
-    verbose = FALSE)
-})
+
+el <- el_raw %>% 
+  filter(!is.na(pid_dad)) %>% 
+  select(pid_dad_chr, pid_chr) %>% 
+  as.matrix()
+el
+
+g <- igraph::graph_from_edgelist(el, directed = TRUE)
 ```
 
-```{r}
-for (res in res_lst) {
-  visualise_merges(res)
-}
+```{r, fig.out = 10, fig.height=10}
+ggraph(g, layout = "kk", maxiter = 5000) + 
+  geom_edge_link(aes(start_cap = label_rect(node1.name),
+                     end_cap = label_rect(node2.name)), 
+                 arrow = arrow(length = unit(4, 'mm'))) + 
+  geom_node_text(aes(label = name)) +
+  theme_graph()
 ```
 
 

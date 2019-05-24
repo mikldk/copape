@@ -90,9 +90,9 @@ test_that("TBA", {
     paternalped_ids = dplyr::pull(test_males, paternalped_id),
     pedid_to_merge = pedid_to_merge,
     sons_configs = test_sons_configs,
-    no_surrogate_ancestors = 3,
+    no_surrogate_ancestors = 7,
     stop_birthyear = 1970,
-    surr_pid_start = 50000000,
+    surr_pid_start = 5000,
     verbose = TRUE)
   res
   
