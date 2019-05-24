@@ -432,8 +432,84 @@ Rcpp::DataFrame merge_pedigree(
       Rcpp::Rcout << indv << std::endl;
     }
   }
+
+  ////////////////////////////////////////////////////////////////
+  // Construct result
+  //--------------------------------------------------------------
   
-  Rcpp::DataFrame res;
+  // Construct resulting 1 pedigree:
+  //  + pid
+  //  + pid_dad
+  //  + birthyear
+  //  + surrogate
+  // 
+  // Done by elements in
+  //  + indvs_new
+  //  + non-founders in pedids_new (founders are in indvs_new)
+  
+  std::vector<int> res_vec_pids;
+  std::vector<int> res_vec_pids_dad;
+  std::vector<int> res_vec_birthyears;
+  std::vector<bool> res_vec_surrogate;
+  
+  // pedids_new
+  for (int ped_id : pedids_new) {
+    const std::unordered_map< int, std::vector<int> >::const_iterator find =
+      pedid_to_indices.find(ped_id);
+    
+    if (find == pedid_to_indices.end()) {
+      Rcpp::stop("UNEXPECTED: Pedigree not found");
+    }
+    
+    std::vector<int> indices = find->second;
+    
+    for (int i : indices) {
+      // Founder, so is in indvs_new
+      if (Rcpp::IntegerVector::is_na(pids_dad[i])) {
+        continue;
+      }
+      
+      res_vec_pids.push_back(pids[i]);
+      res_vec_pids_dad.push_back(pids_dad[i]);
+      res_vec_birthyears.push_back(birthyears[i]);
+      res_vec_surrogate.push_back(false);
+    }
+  }
+  
+  // indvs_new
+  for (auto indv_ptr : indvs_new) {
+    Individual indv = *indv_ptr;
+
+    res_vec_pids.push_back(indv.get_pid());
+    res_vec_pids_dad.push_back(indv.get_father_pid_safe());
+    res_vec_birthyears.push_back(indv.get_birthyear());
+    res_vec_surrogate.push_back(indv.is_surrogate());
+  }
+  
+  // 
+  
+  //--------------------------------------------------------------
+  Rcpp::IntegerVector res_pids = Rcpp::wrap(res_vec_pids);
+  Rcpp::IntegerVector res_pids_dad = Rcpp::wrap(res_vec_pids_dad);
+  Rcpp::IntegerVector res_birthyears = Rcpp::wrap(res_vec_birthyears);
+  Rcpp::LogicalVector res_surrogate = Rcpp::wrap(res_vec_surrogate);
+  
+  // Convert -1 to NA
+  int n_res = res_pids_dad.size();
+  
+  for (int i = 0; i < n_res; ++i) {
+    if (res_pids_dad[i] == -1) {
+      res_pids_dad[i] = Rcpp::IntegerVector::get_na();
+    }
+  }
+  
+  
+  Rcpp::DataFrame res = Rcpp::DataFrame::create(
+    Rcpp::Named("pid") = res_pids,
+    Rcpp::Named("pid_dad") = res_pids_dad,
+    Rcpp::Named("birthyears") = res_birthyears,
+    Rcpp::Named("is_surrogate") = res_surrogate
+  );
   
   return res;
 }

@@ -38,6 +38,15 @@ std::shared_ptr<Individual> Individual::get_father() const {
   return m_father;
 }
 
+int Individual::get_father_pid_safe() const {
+  
+  if (m_father) {
+    return m_father->get_pid();
+  }
+  
+  return -1;
+}
+
 std::vector< std::shared_ptr<Individual> > Individual::get_children() const {
   return m_children;
 }

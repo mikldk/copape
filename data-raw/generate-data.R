@@ -1,19 +1,123 @@
 generate_data <- function() {
-#   sons_dist <- list(
-#     age_at_birth = list(28, c(27, 29), c(25, 27, 29), c(18, 25, 35, 45)),
-#     cumprob = c(0.4, 0.3+0.4, 0.2+0.3+0.4, 0.1+0.2+0.3+0.4)
-#   )
-# 
-#   usethis::use_data(sons_dist,
-#                     internal = TRUE, overwrite = TRUE)
-
-  test_sons_raw <- c(rep(list(30), 4), 
-                     rep(list(c(27, 29)), 3),
-                     rep(list(c(25, 27, 29)), 2),
-                     rep(list(c(18, 25, 35, 45)), 1)
+  test_sons_configs <- c(rep(list(30), 4), 
+                         rep(list(c(27, 29)), 3),
+                         rep(list(c(25, 27, 29)), 2),
+                         rep(list(c(18, 25, 35, 45)), 1)
   )
-  #sons_raw
   
-  usethis::use_data(test_sons_raw,
-                    internal = TRUE, overwrite = TRUE)
+  test_males <-
+    structure(
+      list(
+        pid = c(
+          13584072,
+          11721524,
+          11741690,
+          6031700,
+          16428832,
+          9567688,
+          9515216,
+          16210893,
+          1,
+          19051740,
+          5881475,
+          3857336,
+          14953427,
+          15385716,
+          1548940,
+          975490,
+          130974,
+          14800761,
+          18944652,
+          6962050,
+          418428,
+          14416513,
+          
+          555
+        ),
+        pid_dad = c(
+          NA,
+          19051740,
+          16428832,
+          16428832,
+          NA,
+          NA,
+          13584072,
+          9515216,
+          9567688,
+          9567688,
+          3857336,
+          NA,
+          6031700,
+          16210893,
+          6031700,
+          19051740,
+          5881475,
+          16210893,
+          NA,
+          NA,
+          NA,
+          NA,
+          
+          NA
+        ),
+        birthyear = c(
+          1911,
+          2006,
+          1995,
+          1992,
+          1958,
+          1953,
+          1948,
+          1979,
+          1988,
+          1980,
+          1978,
+          1950,
+          2013,
+          2003,
+          2008,
+          2009,
+          2013,
+          2015,
+          1960,
+          1973,
+          2015,
+          2008,
+          
+          1926
+        ),
+        paternalped_id = c(
+          12L,
+          26L,
+          38L,
+          38L,
+          38L,
+          26L,
+          12L,
+          12L,
+          26L,
+          26L,
+          17L,
+          17L,
+          38L,
+          12L,
+          38L,
+          26L,
+          17L,
+          12L,
+          4L,
+          3L,
+          2L,
+          1L,
+          
+          555L
+        )
+      ),
+      class = "data.frame",
+      row.names = c(NA,-23L)
+    )
+  
+  usethis::use_data(test_sons_configs, 
+                    test_males,
+                    internal = FALSE, overwrite = TRUE)
 }

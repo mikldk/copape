@@ -16,3 +16,54 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r}
+library(tidyverse)
+library(copape)
+```
+
+```{r}
+# res <- visualise_merges(
+#     pids = dplyr::pull(test_males, pid),
+#     pids_dad = dplyr::pull(test_males, pid_dad),  
+#     birthyears = dplyr::pull(test_males, birthyear), 
+#     paternalped_ids = dplyr::pull(test_males, paternalped_id),
+#     pedid_to_merge = pedid_to_merge,
+#     sons_configs = test_sons_configs,
+#     seed = 1,
+#     no_surrogate_ancestors = 3,
+#     stop_birthyear = 1970,
+#     surr_pid_start = 50000000,
+#     verbose = TRUE)
+```
+
+```{r}
+pedid_to_merge <- 38
+  # test_males %>% 
+  #   dplyr::mutate(PedOfInt = ifelse(paternalped_id == pedid_to_merge, "X", ""),
+  #                 PedOfIntFounder = ifelse(paternalped_id == pedid_to_merge & is.na(pid_dad), "XX", ""))
+  
+  test_males %>% 
+    filter(paternalped_id == pedid_to_merge)
+  
+  set.seed(1)
+  res <- merge_pedigree(
+    pids = dplyr::pull(test_males, pid),
+    pids_dad = dplyr::pull(test_males, pid_dad),  
+    birthyears = dplyr::pull(test_males, birthyear), 
+    paternalped_ids = dplyr::pull(test_males, paternalped_id),
+    pedid_to_merge = pedid_to_merge,
+    sons_configs = test_sons_configs,
+    no_surrogate_ancestors = 3,
+    stop_birthyear = 1970,
+    surr_pid_start = 50000000,
+    verbose = TRUE)
+  res
+  
+  res %>% 
+    left_join(test_males %>% select(pid, pid_dad, birthyear, paternalped_id),
+              by = "pid")
+```
+
+
+
+

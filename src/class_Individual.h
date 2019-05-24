@@ -33,6 +33,7 @@ public:
   bool is_surrogate() const;
   
   std::shared_ptr<Individual> get_father() const;
+  int get_father_pid_safe() const;
   std::vector< std::shared_ptr<Individual> > get_children() const;
   
   void set_father(const std::shared_ptr<Individual> father);
