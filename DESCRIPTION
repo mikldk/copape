@@ -18,7 +18,9 @@ Imports:
     Rcpp (>= 0.12.12),
     dplyr,
     magrittr,
-    tibble
+    tibble,
+    kinship2,
+    malan
 LinkingTo: Rcpp
 SystemRequirements: C++17
 RoxygenNote: 6.1.1

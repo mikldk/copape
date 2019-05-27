@@ -404,6 +404,8 @@ Rcpp::DataFrame merge_pedigree(
   int next_pid = surr_pid_start;
   
   for (int k = 1; k <= no_surrogate_ancestors; ++k) {
+    Rcpp::checkUserInterrupt();
+    
     add_ancestor_with_children(
       MRCA, 
       &next_pid,
