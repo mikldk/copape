@@ -5,8 +5,9 @@
 \title{Merge a pedigree randomly}
 \usage{
 merge_pedigree(pids, pids_dad, birthyears, paternalped_ids, pedid_to_merge,
-  sons_configs, no_surrogate_ancestors = 1L,
-  surr_pid_start = 50000000L, verbose = FALSE)
+  sons_configs, no_surrogate_ancestors = 1L, stop_birthyear = 1970L,
+  force_surrogate_previous_to = 1900L, surr_pid_start = 50000000L,
+  verbose = FALSE)
 }
 \arguments{
 \item{pids}{vector of person ids: >= 1 (`NA` not allowed)}

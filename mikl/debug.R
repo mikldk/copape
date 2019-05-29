@@ -1,3 +1,5 @@
+# R -d gdb -f mikl/debug.R
+
 devtools::load_all(".")
 
 d_males <-

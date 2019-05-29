@@ -101,7 +101,7 @@ insert_missing_pids <- function(d) {
 
 #' @importFrom kinship2 pedigree plot.pedigree
 #' @export
-visualise_merges <- function(res, highlight_pids = c()) {
+visualise_merges <- function(res, highlight_pids1 = c(), highlight_pids2 = c(), cex = 0.5, ...) {
   ped_raw <- res %>% 
     insert_missing_pids()
   
@@ -114,7 +114,8 @@ visualise_merges <- function(res, highlight_pids = c()) {
   
   clr <- ped_raw %>% 
     mutate(clr = case_when(
-      length(highlight_pids) > 0 & pid %in% highlight_pids ~ "red",
+      length(highlight_pids1) > 0 & pid %in% highlight_pids1 ~ "red",
+      length(highlight_pids2) > 0 & pid %in% highlight_pids2 ~ "yellow",
       sex == "female" ~ "lightgrey",
       is_surrogate ~ "blue",
       TRUE ~ "black")) %>% 
@@ -127,7 +128,7 @@ visualise_merges <- function(res, highlight_pids = c()) {
     sex = sex,
     status = status))
 
-  p <- kinship2::plot.pedigree(ped, cex = 0.5, id = label, col = clr)
+  p <- kinship2::plot.pedigree(ped, id = label, col = clr, cex = cex, ...)
   
   return(invisible(p))
 }
