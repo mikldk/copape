@@ -62,12 +62,12 @@
                     */
 // [[Rcpp::export]]
 std::vector<int> sample_sons_ages(const std::vector< std::vector<int> >& sons_configs_vec) {
-  Rcpp::Rcout << "sample_sons_ages()" << std::endl;
+  //Rcpp::Rcout << "sample_sons_ages()" << std::endl;
   
   int i = random_index(sons_configs_vec.size());
   const std::vector<int> x = sons_configs_vec[i];
   
-  Rcpp::print(Rcpp::wrap(x));
+  //Rcpp::print(Rcpp::wrap(x));
   
   return x;
 }
