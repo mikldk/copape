@@ -21,16 +21,18 @@ private:
   int m_pid; 
   int m_birthyear;
   bool m_surrogate;
+  int m_org_paternalped_id = -1; // === NA
   
   std::shared_ptr<Individual> m_father;
   std::vector< std::shared_ptr<Individual> > m_children;
   
 public:
-  Individual(int pid, int birthyear, bool surrogate);
+  Individual(int pid, int birthyear, bool surrogate, int org_paternalped_id);
   
   int get_pid() const;
   int get_birthyear() const;
   bool is_surrogate() const;
+  int get_org_paternalped_id() const;
   
   std::shared_ptr<Individual> get_father() const;
   int get_father_pid_safe() const;

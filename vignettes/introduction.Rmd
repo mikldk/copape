@@ -66,8 +66,9 @@ res <- merge_pedigree(
   paternalped_ids = dplyr::pull(test_males, paternalped_id),
   pedid_to_merge = pedid_to_merge,
   sons_configs = test_sons_configs,
-  no_surrogate_ancestors = 10,
+  no_surrogate_ancestors = 2,
   stop_birthyear = 1980,
+  force_surrogate_previous_to = 1980,
   surr_pid_start = 5000,
   verbose = FALSE)
 res

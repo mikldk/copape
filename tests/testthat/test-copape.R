@@ -74,7 +74,7 @@ test_that("validate_sons_configs()", {
 test_that("TBA", {
   library(dplyr)
   
-  pedid_to_merge <- 38
+  pedid_to_merge <- 5
   # test_males %>% 
   #   dplyr::mutate(PedOfInt = ifelse(paternalped_id == pedid_to_merge, "X", ""),
   #                 PedOfIntFounder = ifelse(paternalped_id == pedid_to_merge & is.na(pid_dad), "XX", ""))

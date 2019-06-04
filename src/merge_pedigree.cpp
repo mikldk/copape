@@ -72,6 +72,22 @@ std::vector<int> sample_sons_ages(const std::vector< std::vector<int> >& sons_co
   return x;
 }
 
+std::shared_ptr<Individual> create_surrogate_indv(
+    const int wanted_birthyear,
+    int* next_pid,
+    std::unordered_map< int, std::shared_ptr<Individual> >& indvs_new) {
+  
+  int pid = *next_pid;
+  *next_pid = *next_pid + 1;
+  
+  Individual surrogate_indv(pid, wanted_birthyear, true, -1);
+  std::shared_ptr<Individual> surrogate_indv_ptr = 
+    std::make_shared<Individual>(surrogate_indv);
+  
+  indvs_new[pid] = surrogate_indv_ptr;
+  
+  return surrogate_indv_ptr;
+}
 
 std::shared_ptr<Individual> get_or_create_indv(
     const int wanted_birthyear,
@@ -95,14 +111,8 @@ std::shared_ptr<Individual> get_or_create_indv(
   if (wanted_birthyear <= force_surrogate_previous_to || 
       find_birthyear == map_birthyear_founder_index.end()) {
     
-    int pid = *next_pid;
-    *next_pid = *next_pid + 1;
-    
-    Individual surrogate_indv(pid, wanted_birthyear, true);
     std::shared_ptr<Individual> surrogate_indv_ptr = 
-      std::make_shared<Individual>(surrogate_indv);
-    
-    indvs_new[pid] = surrogate_indv_ptr;
+      create_surrogate_indv(wanted_birthyear, next_pid, indvs_new);
     
     return surrogate_indv_ptr;
   }
@@ -138,14 +148,19 @@ std::shared_ptr<Individual> get_or_create_indv(
   //Rcpp::Rcout << "valid_choices: " << std::endl;
   //Rcpp::print(Rcpp::wrap(valid_choices));
   
- // while pedids_new.contains(pedid)
- if (valid_choices.size() == 0) {
-   Rcpp::Rcout << "wanted_birthyear = " << wanted_birthyear << std::endl;
-   Rcpp::Rcout << "ped_ids_with_birthyear:" << std::endl;
-   Rcpp::print(Rcpp::wrap(ped_ids_with_birthyear));
+  // while pedids_new.contains(pedid)
+  if (valid_choices.size() == 0) {
+   //Rcpp::Rcout << "wanted_birthyear = " << wanted_birthyear << std::endl;
+   //Rcpp::Rcout << "ped_ids_with_birthyear:" << std::endl;
+   //Rcpp::print(Rcpp::wrap(ped_ids_with_birthyear));
    
-   Rcpp::stop("Could not find suitable unused existing pedigree");
- }
+   Rcpp::warning("Could not find suitable unused existing pedigree. Taking surrogate instead. May have been inappropriate.");
+   
+   std::shared_ptr<Individual> surrogate_indv_ptr = 
+     create_surrogate_indv(wanted_birthyear, next_pid, indvs_new);
+   
+   return surrogate_indv_ptr;
+  }
  
   int rnd_idx = random_index(valid_choices.size());
   int pedid = valid_choices[rnd_idx];
@@ -170,12 +185,16 @@ std::shared_ptr<Individual> get_or_create_indv(
 
   int founder_pid = pids[founder_index];
   
+  int founder_paternalped_id = paternalped_ids[founder_index];
+  
   // Check if founder already created as individual:
   std::unordered_map< int, std::shared_ptr<Individual> >::const_iterator find = 
     indvs_new.find(founder_pid);
   
   if (find == indvs_new.end()) {
-    Individual existing_indv(founder_pid, wanted_birthyear, false);
+    Individual existing_indv(founder_pid, wanted_birthyear, false, 
+                             founder_paternalped_id);
+    
     std::shared_ptr<Individual> existing_indv_ptr = 
       std::make_shared<Individual>(existing_indv);
     indvs_new[founder_pid] = existing_indv_ptr;
@@ -454,7 +473,9 @@ Rcpp::DataFrame merge_pedigree(
   ////////////////////////////////////////////////////////////////
   // Construct founder in PoI pedigree
   //--------------------------------------------------------------
-  Individual PoI_founder(pids[idx_PoI_founder], birthyears[idx_PoI_founder], false);
+  Individual PoI_founder(pids[idx_PoI_founder], birthyears[idx_PoI_founder], 
+                         false, pedid_to_merge);
+  
   std::shared_ptr<Individual> PoI_founder_ptr = 
     std::make_shared<Individual>(PoI_founder);
   
@@ -517,6 +538,7 @@ Rcpp::DataFrame merge_pedigree(
   std::vector<int> res_vec_pids_dad;
   std::vector<int> res_vec_birthyears;
   std::vector<bool> res_vec_surrogate;
+  std::vector<int> res_vec_org_paternalped_id;
   
   if (verbose) {
     Rcpp::Rcout << "pedids_new:" << std::endl;
@@ -544,6 +566,7 @@ Rcpp::DataFrame merge_pedigree(
       res_vec_pids_dad.push_back(pids_dad[i]);
       res_vec_birthyears.push_back(birthyears[i]);
       res_vec_surrogate.push_back(false);
+      res_vec_org_paternalped_id.push_back(ped_id); // == paternalped_ids[i]
     }
   }
   
@@ -555,6 +578,7 @@ Rcpp::DataFrame merge_pedigree(
     res_vec_pids_dad.push_back(indv.get_father_pid_safe());
     res_vec_birthyears.push_back(indv.get_birthyear());
     res_vec_surrogate.push_back(indv.is_surrogate());
+    res_vec_org_paternalped_id.push_back(indv.get_org_paternalped_id());
   }
   
   // 
@@ -564,6 +588,7 @@ Rcpp::DataFrame merge_pedigree(
   Rcpp::IntegerVector res_pids_dad = Rcpp::wrap(res_vec_pids_dad);
   Rcpp::IntegerVector res_birthyears = Rcpp::wrap(res_vec_birthyears);
   Rcpp::LogicalVector res_surrogate = Rcpp::wrap(res_vec_surrogate);
+  Rcpp::IntegerVector res_org_paternalped_id = Rcpp::wrap(res_vec_org_paternalped_id);
   
   // Convert -1 to NA
   int n_res = res_pids_dad.size();
@@ -572,13 +597,18 @@ Rcpp::DataFrame merge_pedigree(
     if (res_pids_dad[i] == -1) {
       res_pids_dad[i] = Rcpp::IntegerVector::get_na();
     }
+    
+    if (res_org_paternalped_id[i] == -1) {
+      res_org_paternalped_id[i] = Rcpp::IntegerVector::get_na();
+    }
   }
   
   Rcpp::DataFrame res = Rcpp::DataFrame::create(
     Rcpp::Named("pid") = res_pids,
     Rcpp::Named("pid_dad") = res_pids_dad,
     Rcpp::Named("birthyear") = res_birthyears,
-    Rcpp::Named("is_surrogate") = res_surrogate
+    Rcpp::Named("is_surrogate") = res_surrogate,
+    Rcpp::Named("org_paternalped_id") = res_org_paternalped_id
   );
   
   return res;

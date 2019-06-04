@@ -132,3 +132,37 @@ visualise_merges <- function(res, highlight_pids1 = c(), highlight_pids2 = c(), 
   
   return(invisible(p))
 }
+
+#' @export
+create_copape_layout <- function(graph) {
+  # 
+  # # ggraph -> tree?
+  # ggraph(g, layout = "nicely") + 
+  #   #geom_edge_link() + 
+  #   geom_edge_link(arrow = arrow(length = unit(4, 'mm')), 
+  #                  end_cap = circle(3, 'mm')) + 
+  #   #geom_node_label(aes(label = name))
+  #   geom_node_point() + 
+  #   NULL
+  # 
+  # ################
+  # 
+  # ggraph(g, layout = 'dendrogram', circular = FALSE) + 
+  #   geom_edge_diagonal() +
+  #   geom_node_point() +
+  #   theme_void()
+  # 
+
+  ll <- ggraph::create_layout(graph, layout = 'dendrogram', 
+                              circular = FALSE)
+  
+  ll2 <- ll
+  ll_nms <- as.integer(as.character(ll2$name))
+  ll_df <- tibble(pid = ll_nms) %>% 
+    inner_join(d_tmp2, by = "pid")
+  stopifnot(isTRUE(all.equal(ll_df %>% pull(pid), ll_nms)))
+  ll2$y <- ll_df %>% pull(birthyear)
+  
+  return(ll2)
+}
+

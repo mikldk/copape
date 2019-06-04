@@ -14,10 +14,15 @@ Individual
 
 #include "class_Individual.h"
 
-Individual::Individual(int pid, int birthyear, bool surrogate) {
+Individual::Individual(int pid, 
+                       int birthyear, 
+                       bool surrogate, 
+                       int org_paternalped_id) {
+  
   m_pid = pid;
   m_birthyear = birthyear;
   m_surrogate = surrogate;
+  m_org_paternalped_id = org_paternalped_id;
   
   m_father = nullptr;
 }
@@ -32,6 +37,10 @@ int Individual::get_birthyear() const {
 
 bool Individual::is_surrogate() const {
   return m_surrogate;
+}
+
+int Individual::get_org_paternalped_id() const {
+  return m_org_paternalped_id;
 }
 
 std::shared_ptr<Individual> Individual::get_father() const {
