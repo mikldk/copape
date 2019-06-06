@@ -20,7 +20,10 @@ Imports:
     magrittr,
     tibble,
     kinship2,
-    malan
+    malan,
+    igraph,
+    ggraph,
+    tidygraph
 LinkingTo: Rcpp
 SystemRequirements: C++17
 RoxygenNote: 6.1.1

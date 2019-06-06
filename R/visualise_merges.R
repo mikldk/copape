@@ -133,36 +133,76 @@ visualise_merges <- function(res, highlight_pids1 = c(), highlight_pids2 = c(), 
   return(invisible(p))
 }
 
-#' @export
-create_copape_layout <- function(graph) {
-  # 
-  # # ggraph -> tree?
-  # ggraph(g, layout = "nicely") + 
-  #   #geom_edge_link() + 
-  #   geom_edge_link(arrow = arrow(length = unit(4, 'mm')), 
-  #                  end_cap = circle(3, 'mm')) + 
-  #   #geom_node_label(aes(label = name))
-  #   geom_node_point() + 
-  #   NULL
-  # 
-  # ################
-  # 
-  # ggraph(g, layout = 'dendrogram', circular = FALSE) + 
-  #   geom_edge_diagonal() +
-  #   geom_node_point() +
-  #   theme_void()
-  # 
 
-  ll <- ggraph::create_layout(graph, layout = 'dendrogram', 
-                              circular = FALSE)
+#' @importFrom igraph graph_from_data_frame
+#' @importFrom tidygraph as_tbl_graph activate
+#' @importFrom dplyr left_join
+#' @importFrom ggplot2 ggraph scale_x_continuous scale_y_reverse theme
+#' @importFrom ggraph ggraph geom_edge_diagonal geom_node_point
+#' 
+#' @export
+ggcopape <- function(d) {
   
+  d_tmp <- d %>% 
+    select(pid, pid_dad) %>% 
+    left_join(d %>% select(pid), 
+              by = c("pid_dad" = "pid"), 
+              suffix = c("_son", "_dad")) %>% 
+    rename(pid_son = pid) %>% 
+    filter(complete.cases(.)) %>% 
+    select(2, 1)
+
+  graph <- igraph::graph_from_data_frame(d_tmp, directed = TRUE)
+  
+  g <- tidygraph::as_tbl_graph(graph)
+  
+  g2 <- g %>% 
+    tidygraph::activate(nodes) %>% 
+    dplyr::left_join(d %>% mutate(pid = as.character(pid)), by = c("name" = "pid")) %>% 
+    mutate(org_paternalped_id = as.character(org_paternalped_id)) %>% 
+    mutate(org_paternalped_id = case_when(
+      is.na(org_paternalped_id) ~ "NA",
+      TRUE ~ org_paternalped_id
+    ))
+  
+  # Create layout
+  ll <- ggraph::create_layout(g2, layout = 'dendrogram', 
+                              circular = FALSE)
   ll2 <- ll
   ll_nms <- as.integer(as.character(ll2$name))
   ll_df <- tibble(pid = ll_nms) %>% 
-    inner_join(d_tmp2, by = "pid")
+    inner_join(d, by = c("pid"))
+  
+  
   stopifnot(isTRUE(all.equal(ll_df %>% pull(pid), ll_nms)))
   ll2$y <- ll_df %>% pull(birthyear)
   
-  return(ll2)
+  
+  
+  p <- ggraph::ggraph(ll2) + 
+    ggraph::geom_edge_diagonal() +
+    ggraph::geom_node_point(aes(color = org_paternalped_id,
+                        shape = is_surrogate,
+                        size = is_surrogate), 
+                    show.legend = FALSE) +
+    ggplot2::scale_x_continuous(breaks = NULL) +
+    ggplot2::scale_y_reverse(breaks = scales::pretty_breaks(10)) +
+    ggplot2::theme(
+      #axis.line = element_blank(),
+      axis.text.x = element_blank(),
+      #axis.text.y = element_blank(),
+      axis.ticks = element_blank(),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      legend.position = "none",
+      panel.background = element_blank(),
+      panel.border = element_blank(),
+      panel.grid.major = element_line(size = 0.1, 
+                                      colour = 'darkgrey'),
+      panel.grid.minor = element_line(size = 0.1, 
+                                      colour = 'darkgrey'),
+      plot.background = element_blank()) 
+  
+  return(p)
 }
 
