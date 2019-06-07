@@ -189,7 +189,7 @@ ggcopape <- function(d) {
       axis.ticks = element_blank(),
       axis.title.x = element_blank(),
       axis.title.y = element_blank(),
-      legend.position = "none",
+      #legend.position = "none",
       panel.background = element_blank(),
       panel.border = element_blank(),
       panel.grid.major = element_line(size = 0.1, 
