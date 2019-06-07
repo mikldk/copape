@@ -180,11 +180,6 @@ ggcopape <- function(d) {
   
   
   p <- ggraph::ggraph(ll2) + 
-    ggraph::geom_edge_diagonal() +
-    ggraph::geom_node_point(aes(color = org_paternalped_id,
-                        shape = is_surrogate,
-                        size = is_surrogate), 
-                    show.legend = FALSE) +
     ggplot2::scale_x_continuous(breaks = NULL) +
     ggplot2::scale_y_reverse(breaks = scales::pretty_breaks(10)) +
     ggplot2::theme(

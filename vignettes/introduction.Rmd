@@ -39,6 +39,7 @@ ped_raw <- test_males %>%
   filter(paternalped_id == pedid_to_merge) %>% 
   insert_missing_pids()
 
+
 label <- ped_raw %>% 
   mutate(pid_chr = ifelse(is.na(birthyear), 
                           paste0("(", pid, ")"),

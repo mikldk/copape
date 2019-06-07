@@ -84,6 +84,10 @@ std::shared_ptr<Individual> create_surrogate_indv(
   std::shared_ptr<Individual> surrogate_indv_ptr = 
     std::make_shared<Individual>(surrogate_indv);
   
+  if (indvs_new.find(pid) != indvs_new.end()) {
+    Rcpp::stop("pid already exists!");
+  }
+  
   indvs_new[pid] = surrogate_indv_ptr;
   
   return surrogate_indv_ptr;
@@ -150,16 +154,16 @@ std::shared_ptr<Individual> get_or_create_indv(
   
   // while pedids_new.contains(pedid)
   if (valid_choices.size() == 0) {
-   //Rcpp::Rcout << "wanted_birthyear = " << wanted_birthyear << std::endl;
-   //Rcpp::Rcout << "ped_ids_with_birthyear:" << std::endl;
-   //Rcpp::print(Rcpp::wrap(ped_ids_with_birthyear));
-   
-   Rcpp::warning("Could not find suitable unused existing pedigree. Taking surrogate instead. May have been inappropriate.");
-   
-   std::shared_ptr<Individual> surrogate_indv_ptr = 
+    //Rcpp::Rcout << "wanted_birthyear = " << wanted_birthyear << std::endl;
+    //Rcpp::Rcout << "ped_ids_with_birthyear:" << std::endl;
+    //Rcpp::print(Rcpp::wrap(ped_ids_with_birthyear));
+    
+    Rcpp::warning("Could not find suitable unused existing pedigree. Taking surrogate instead. May have been inappropriate.");
+    
+    std::shared_ptr<Individual> surrogate_indv_ptr = 
      create_surrogate_indv(wanted_birthyear, next_pid, indvs_new);
-   
-   return surrogate_indv_ptr;
+    
+    return surrogate_indv_ptr;
   }
  
   int rnd_idx = random_index(valid_choices.size());
@@ -291,9 +295,6 @@ void add_ancestor_with_children(
   
   int rnd_idx = random_index(sons_ages.size());
 
-  int father_pid = *next_pid;
-  *next_pid = *next_pid + 1;
-  
   int father_birthyear = individual->get_birthyear() - sons_ages[rnd_idx];
   
   std::shared_ptr<Individual> father_ptr = 
