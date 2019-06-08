@@ -136,21 +136,21 @@ visualise_merges <- function(res, highlight_pids1 = c(), highlight_pids2 = c(), 
 
 #' @importFrom igraph graph_from_data_frame
 #' @importFrom tidygraph as_tbl_graph activate
-#' @importFrom dplyr left_join
-#' @importFrom ggplot2 ggraph scale_x_continuous scale_y_reverse theme
+#' @importFrom dplyr left_join select rename filter
+#' @importFrom ggplot2 scale_x_continuous scale_y_reverse theme element_line element_blank
 #' @importFrom ggraph ggraph geom_edge_diagonal geom_node_point
 #' 
 #' @export
 ggcopape <- function(d) {
   
   d_tmp <- d %>% 
-    select(pid, pid_dad) %>% 
-    left_join(d %>% select(pid), 
+    dplyr::select(pid, pid_dad) %>% 
+    dplyr::left_join(d %>% select(pid), 
               by = c("pid_dad" = "pid"), 
               suffix = c("_son", "_dad")) %>% 
-    rename(pid_son = pid) %>% 
-    filter(complete.cases(.)) %>% 
-    select(2, 1)
+    dplyr::rename(pid_son = pid) %>% 
+    dplyr::filter(complete.cases(.)) %>% 
+    dplyr::select(2, 1)
 
   graph <- igraph::graph_from_data_frame(d_tmp, directed = TRUE)
   
@@ -184,19 +184,19 @@ ggcopape <- function(d) {
     ggplot2::scale_y_reverse(breaks = scales::pretty_breaks(10)) +
     ggplot2::theme(
       #axis.line = element_blank(),
-      axis.text.x = element_blank(),
+      axis.text.x = ggplot2::element_blank(),
       #axis.text.y = element_blank(),
-      axis.ticks = element_blank(),
-      axis.title.x = element_blank(),
-      axis.title.y = element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      axis.title.x = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_blank(),
       #legend.position = "none",
-      panel.background = element_blank(),
-      panel.border = element_blank(),
-      panel.grid.major = element_line(size = 0.1, 
-                                      colour = 'darkgrey'),
-      panel.grid.minor = element_line(size = 0.1, 
-                                      colour = 'darkgrey'),
-      plot.background = element_blank()) 
+      panel.background = ggplot2::element_blank(),
+      panel.border = ggplot2::element_blank(),
+      panel.grid.major = ggplot2::element_line(size = 0.1, 
+                                               colour = 'darkgrey'),
+      panel.grid.minor = ggplot2::element_line(size = 0.1, 
+                                               colour = 'darkgrey'),
+      plot.background = ggplot2::element_blank()) 
   
   return(p)
 }
