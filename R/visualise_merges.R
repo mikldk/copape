@@ -136,7 +136,8 @@ visualise_merges <- function(res, highlight_pids1 = c(), highlight_pids2 = c(), 
 
 #' @importFrom igraph graph_from_data_frame
 #' @importFrom tidygraph as_tbl_graph activate
-#' @importFrom dplyr left_join select rename filter
+#' @importFrom tibble tibble
+#' @importFrom dplyr left_join inner_join select rename filter mutate case_when pull
 #' @importFrom ggplot2 scale_x_continuous scale_y_reverse theme element_line element_blank
 #' @importFrom ggraph ggraph geom_edge_diagonal geom_node_point
 #' 
@@ -156,11 +157,11 @@ ggcopape <- function(d) {
   
   g <- tidygraph::as_tbl_graph(graph)
   
-  g2 <- g %>% 
-    tidygraph::activate(nodes) %>% 
-    dplyr::left_join(d %>% mutate(pid = as.character(pid)), by = c("name" = "pid")) %>% 
-    mutate(org_paternalped_id = as.character(org_paternalped_id)) %>% 
-    mutate(org_paternalped_id = case_when(
+  g2 <- g
+  g2 <- tidygraph::activate(g2, nodes)
+  g2 <- dplyr::left_join(dplyr::mutate(d, pid = as.character(pid)), by = c("name" = "pid"))
+  g2 <- dplyr::mutate(g2, org_paternalped_id = as.character(org_paternalped_id))
+  g2 <- dplyr::mutate(g2, org_paternalped_id = dplyr::case_when(
       is.na(org_paternalped_id) ~ "NA",
       TRUE ~ org_paternalped_id
     ))
@@ -170,15 +171,13 @@ ggcopape <- function(d) {
                               circular = FALSE)
   ll2 <- ll
   ll_nms <- as.integer(as.character(ll2$name))
-  ll_df <- tibble(pid = ll_nms) %>% 
-    inner_join(d, by = c("pid"))
+  ll_df <- tibble::tibble(pid = ll_nms)
+  ll_df <- dplyr::inner_join(ll_df, d, by = c("pid"))
   
   
-  stopifnot(isTRUE(all.equal(ll_df %>% pull(pid), ll_nms)))
-  ll2$y <- ll_df %>% pull(birthyear)
-  
-  
-  
+  stopifnot(isTRUE(all.equal(dplyr::pull(ll_df, pid), ll_nms)))
+  ll2$y <- dplyr::pull(ll_df, birthyear)
+
   p <- ggraph::ggraph(ll2) + 
     ggplot2::scale_x_continuous(breaks = NULL) +
     ggplot2::scale_y_reverse(breaks = scales::pretty_breaks(10)) +
