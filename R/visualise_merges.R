@@ -159,7 +159,7 @@ ggcopape <- function(d) {
   
   g2 <- g
   g2 <- tidygraph::activate(g2, nodes)
-  g2 <- dplyr::left_join(dplyr::mutate(d, pid = as.character(pid)), by = c("name" = "pid"))
+  g2 <- dplyr::left_join(g2, dplyr::mutate(d, pid = as.character(pid)), by = c("name" = "pid"))
   g2 <- dplyr::mutate(g2, org_paternalped_id = as.character(org_paternalped_id))
   g2 <- dplyr::mutate(g2, org_paternalped_id = dplyr::case_when(
       is.na(org_paternalped_id) ~ "NA",
