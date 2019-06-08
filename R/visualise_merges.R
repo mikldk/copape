@@ -149,7 +149,7 @@ ggcopape <- function(d) {
               by = c("pid_dad" = "pid"), 
               suffix = c("_son", "_dad"))
   d_tmp <- dplyr::rename(d_tmp, pid_son = pid)
-  d_tmp <- dplyr::filter(d_tmp, complete.cases(.))
+  d_tmp <- dplyr::filter(d_tmp, complete.cases(d_tmp))
   d_tmp <- dplyr::select(d_tmp, 2, 1)
 
   graph <- igraph::graph_from_data_frame(d_tmp, directed = TRUE)
