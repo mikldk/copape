@@ -143,14 +143,14 @@ visualise_merges <- function(res, highlight_pids1 = c(), highlight_pids2 = c(), 
 #' @export
 ggcopape <- function(d) {
   
-  d_tmp <- d %>% 
-    dplyr::select(pid, pid_dad) %>% 
-    dplyr::left_join(d %>% select(pid), 
+  d_tmp <- d
+  d_tmp <- dplyr::select(d_tmp, pid, pid_dad)
+  d_tmp <- dplyr::left_join(d_tmp, dplyr::select(d, pid), 
               by = c("pid_dad" = "pid"), 
-              suffix = c("_son", "_dad")) %>% 
-    dplyr::rename(pid_son = pid) %>% 
-    dplyr::filter(complete.cases(.)) %>% 
-    dplyr::select(2, 1)
+              suffix = c("_son", "_dad"))
+  d_tmp <- dplyr::rename(d_tmp, pid_son = pid)
+  d_tmp <- dplyr::filter(d_tmp, complete.cases(.))
+  d_tmp <- dplyr::select(d_tmp, 2, 1)
 
   graph <- igraph::graph_from_data_frame(d_tmp, directed = TRUE)
   
