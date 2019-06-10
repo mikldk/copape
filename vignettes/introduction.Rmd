@@ -148,3 +148,24 @@ for (res in res_lst) {
 ```
 
 
+# Additional plots
+
+```{r}
+set.seed(3)
+res <- merge_pedigree(
+    pids = dplyr::pull(test_males, pid),
+    pids_dad = dplyr::pull(test_males, pid_dad),  
+    birthyears = dplyr::pull(test_males, birthyear), 
+    paternalped_ids = dplyr::pull(test_males, paternalped_id),
+    pedid_to_merge = 5,
+    sons_configs = test_sons_configs,
+    no_surrogate_ancestors = 5,
+    stop_birthyear = 1980,
+    force_surrogate_previous_to = 1900,
+    surr_pid_start = 5000,
+    verbose = FALSE)
+
+ggcopape(res) + 
+    geom_edge_diagonal() +
+    geom_node_point(aes(color = org_paternalped_id, shape = is_surrogate), size = 4) 
+```
