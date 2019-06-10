@@ -62,7 +62,7 @@
                     */
 // [[Rcpp::export]]
 std::vector<int> sample_sons_ages(const std::vector< std::vector<int> >& sons_configs_vec) {
-  Rcpp::Rcout << "sample_sons_ages()" << std::endl;
+  //Rcpp::Rcout << "sample_sons_ages()" << std::endl;
   
   int i = random_index(sons_configs_vec.size());
   const std::vector<int> x = sons_configs_vec[i];
@@ -106,7 +106,7 @@ std::shared_ptr<Individual> get_or_create_indv(
 ) {
   // FIXME: Implement method 1/2, for now just for easier implementation:
   
-  Rcpp::Rcout << "  get_or_create_indv()" << std::endl;
+  //Rcpp::Rcout << "  get_or_create_indv()" << std::endl;
   
   const std::unordered_map<int, std::vector<int>>::const_iterator find_birthyear =
     map_birthyear_founder_index.find(wanted_birthyear);
@@ -115,7 +115,7 @@ std::shared_ptr<Individual> get_or_create_indv(
   if (wanted_birthyear <= force_surrogate_previous_to || 
       find_birthyear == map_birthyear_founder_index.end()) {
     
-    Rcpp::Rcout << "  surrogate" << std::endl;
+    //Rcpp::Rcout << "  surrogate" << std::endl;
     
     std::shared_ptr<Individual> surrogate_indv_ptr = 
       create_surrogate_indv(wanted_birthyear, next_pid, indvs_new);
@@ -192,10 +192,10 @@ std::shared_ptr<Individual> get_or_create_indv(
   int founder_pid = pids[founder_index];
   int founder_paternalped_id = paternalped_ids[founder_index];
   
-  Rcpp::Rcout << "  existing: pedid = " << 
-    pedid << ", founder_pid = " << 
-      founder_pid << ", founder_paternalped_id = " << 
-        founder_paternalped_id << std::endl;
+  //Rcpp::Rcout << "  existing: pedid = " << 
+  //  pedid << ", founder_pid = " << 
+  //    founder_pid << ", founder_paternalped_id = " << 
+  //      founder_paternalped_id << std::endl;
   
   // Check if founder already created as individual:
   // FIXME: Is this possible?
@@ -232,7 +232,7 @@ void add_children_until_existing_individual(
     const int stop_birthyear,
     const int force_surrogate_previous_to) {
   
-  Rcpp::Rcout << "add_children_until_existing_individual()" << std::endl;
+  //Rcpp::Rcout << "add_children_until_existing_individual()" << std::endl;
   
   if (father_ptr->is_surrogate() == false) {
     // stop recursing
@@ -241,13 +241,13 @@ void add_children_until_existing_individual(
   
   std::vector<int> sons_ages = sample_sons_ages(sons_configs);
   
-  Rcpp::Rcout << "  sons_ages:" << std::endl;
-  Rcpp::print(Rcpp::wrap(sons_ages));
+  //Rcpp::Rcout << "  sons_ages:" << std::endl;
+  //Rcpp::print(Rcpp::wrap(sons_ages));
   
   for (int age : sons_ages) {
     int son_birthyear = father_ptr->get_birthyear() + age;
     
-    Rcpp::Rcout << "son_birthyear = " << son_birthyear << "; father_birthyear = " << father_ptr->get_birthyear() << std::endl;
+    //Rcpp::Rcout << "son_birthyear = " << son_birthyear << "; father_birthyear = " << father_ptr->get_birthyear() << std::endl;
 
     std::shared_ptr<Individual> son_ptr = 
       get_or_create_indv(
@@ -296,11 +296,11 @@ void add_ancestor_with_children(
   
   // 
   
-  Rcpp::Rcout << "add_ancestor_with_children()" << std::endl;
+  //Rcpp::Rcout << "add_ancestor_with_children()" << std::endl;
   
   std::vector<int> sons_ages = sample_sons_ages(sons_configs);
-  Rcpp::Rcout << "  sons_ages:" << std::endl;
-  Rcpp::print(Rcpp::wrap(sons_ages));
+  //Rcpp::Rcout << "  sons_ages:" << std::endl;
+  //Rcpp::print(Rcpp::wrap(sons_ages));
   
   int rnd_idx = random_index(sons_ages.size());
 
