@@ -1,6 +1,8 @@
 # R -d gdb -f mikl/debug.R
 
-devtools::load_all(".")
+#devtools::load_all(".")
+
+library(copape)
 
 d_males <-
   structure(

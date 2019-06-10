@@ -323,7 +323,7 @@ void add_ancestor_with_children(
   father_ptr->add_child(individual);
   individual->set_father(father_ptr);
   
-  for (int i_sons; i_sons < sons_ages.size(); ++i_sons) {
+  for (int i_sons = 0; i_sons < sons_ages.size(); ++i_sons) {
     if (i_sons == rnd_idx) {
       continue;
     }
