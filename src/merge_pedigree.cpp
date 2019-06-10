@@ -234,7 +234,7 @@ void add_children_until_existing_individual(
   
   std::vector<int> sons_ages = sample_sons_ages(sons_configs);
   
-  //Rcpp::print(Rcpp::wrap(sons_ages));
+  Rcpp::print(Rcpp::wrap(sons_ages));
   
   for (int age : sons_ages) {
     int son_birthyear = father_ptr->get_birthyear() + age;
